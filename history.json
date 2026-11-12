@@ -1,0 +1,180 @@
+{
+ "stops": [
+  {
+   "n": 1,
+   "year": "1818",
+   "title": "Britannia begins",
+   "text": "Captain John LeBreton, a naval officer back from the War of 1812, received land on Lac Deschênes and laid out a village he called Britannia, eight years before Bytown, the town that became Ottawa.",
+   "x": 437260.3,
+   "y": 5023884.3,
+   "h": 0,
+   "zoom": 0.3,
+   "source": {
+    "label": "Wikipedia: Britannia Village",
+    "url": "https://en.wikipedia.org/wiki/Britannia_Village,_Ottawa"
+   },
+   "more": null,
+   "photos": []
+  },
+  {
+   "n": 2,
+   "year": "1830s",
+   "title": "The forge at the crossroads",
+   "text": "George Winthrop built a log blacksmith shop where the Richmond and March roads met, some 8 km from Bytown. It still stands on its own spot, one of the very few log buildings from the first settlement that do.",
+   "x": 437869.6,
+   "y": 5023250.7,
+   "h": 3,
+   "zoom": 1.2,
+   "source": {
+    "label": "Heritage Ottawa",
+    "url": "https://heritageottawa.org/en/node/2799"
+   },
+   "more": null,
+   "photos": []
+  },
+  {
+   "n": 3,
+   "year": "1887",
+   "title": "The cottagers' boat club",
+   "text": "Britannia had become a summer cottage colony. The cottagers founded the Britannia Aquatic Club, which met in an old sawmill on the water and raced war canoes before it took up sailing: today's Britannia Yacht Club.",
+   "x": 437103.4,
+   "y": 5024559.8,
+   "h": 6,
+   "zoom": 1.2,
+   "source": {
+    "label": "Britannia Yacht Club",
+    "url": "https://byc.ca/about/club-house/"
+   },
+   "more": null,
+   "photos": []
+  },
+  {
+   "n": 4,
+   "year": "1892",
+   "title": "St. Stephen's",
+   "text": "One of the two churches of the fashionable resort, and the only one still standing.",
+   "x": 437502.3,
+   "y": 5024156.1,
+   "h": 8,
+   "zoom": 1.2,
+   "source": {
+    "label": "Wikipedia: Britannia",
+    "url": "https://en.wikipedia.org/wiki/Britannia,_Ottawa"
+   },
+   "more": null,
+   "photos": []
+  },
+  {
+   "n": 5,
+   "year": "1900",
+   "title": "Britannia-on-the-Bay",
+   "text": "On 24 May 1900 the Ottawa Electric Railway opened its new park at the end of the streetcar line. Riders crossed the railway on a high footbridge to the beach, pavilions and a long pier, built in fifteen weeks on the rubble of a failed power canal and lit at night by ten arc lights.",
+   "x": 437260.3,
+   "y": 5023884.3,
+   "h": 0,
+   "zoom": 0.8,
+   "source": {
+    "label": "Historical Society of Ottawa",
+    "url": "https://www.historicalsocietyottawa.ca/publications/ottawa-stories/significant-technological-changes-in-the-city/britannia-on-the-bay-75"
+   },
+   "more": null,
+   "photos": []
+  },
+  {
+   "n": 6,
+   "year": "1905",
+   "title": "25,000 on a Sunday",
+   "text": "On fine Sundays in July and August the streetcars carried up to 25,000 people out to Britannia. The steamer G.B. Greene, the 'Queen of the River', took 250 passengers at a time up the river; her anchor lies at the beach.",
+   "x": 436952.9,
+   "y": 5023865.7,
+   "h": 0,
+   "zoom": 1.2,
+   "source": {
+    "label": "OC Transpo virtual museum",
+    "url": "https://www.octranspo.com/en/virtual-museum/colourizing-the-past"
+   },
+   "more": null,
+   "photos": []
+  },
+  {
+   "n": 7,
+   "year": "1958",
+   "title": "Queensway Terrace",
+   "text": "Robert Campeau's firm bought 114 acres of the Arkell farm on Pinecrest Road and built family houses on more than 300 lots, one of Ottawa's first large postwar neighbourhoods.",
+   "x": 438385.8,
+   "y": 5023028.5,
+   "h": 0,
+   "zoom": 0.5,
+   "source": {
+    "label": "Wikipedia: Queensway Terrace North",
+    "url": "https://en.wikipedia.org/wiki/Queensway_Terrace_North"
+   },
+   "more": null,
+   "photos": []
+  },
+  {
+   "n": 8,
+   "year": "1959",
+   "title": "The last streetcar",
+   "text": "On 1 May 1959 the last car ran out to Britannia, on what had become Ottawa's last streetcar line. Buses took over.",
+   "x": 437298.1,
+   "y": 5023637.3,
+   "h": 0,
+   "zoom": 0.8,
+   "source": {
+    "label": "Kitchissippi Times",
+    "url": "https://kitchissippi.com/?p=188086"
+   },
+   "more": null,
+   "photos": []
+  },
+  {
+   "n": 9,
+   "year": "1961",
+   "title": "The plant and Mud Lake",
+   "text": "The city built the Britannia Water Purification Plant on the point from 1958 to 1961. Its causeway cut off a shallow bay of the river, which became Mud Lake, now the best birding spot in Ottawa.",
+   "x": 437747.9,
+   "y": 5024477.3,
+   "h": 0,
+   "zoom": 0.6,
+   "source": {
+    "label": "Ottawa Citizen",
+    "url": "https://www.pressreader.com/canada/ottawa-citizen/20210114/281565178404492"
+   },
+   "more": null,
+   "photos": []
+  },
+  {
+   "n": 10,
+   "year": "1960s",
+   "title": "The Queensway cuts through",
+   "text": "Highway 417 was built along the old railway line and split Queensway Terrace in two, North and South.",
+   "x": 438351.7,
+   "y": 5022188.9,
+   "h": 0,
+   "zoom": 0.5,
+   "source": {
+    "label": "Wikipedia: Queensway Terrace South",
+    "url": "https://en.wikipedia.org/wiki/Queensway_Terrace_South"
+   },
+   "more": null,
+   "photos": []
+  },
+  {
+   "n": 11,
+   "year": "2017",
+   "title": "The floods",
+   "text": "The spring floods of 2017 and again 2019 put the shore of Britannia under water and badly damaged the trails around Mud Lake; the NCC has since rebuilt them and replaced the footbridge.",
+   "x": 437747.9,
+   "y": 5024477.3,
+   "h": 0,
+   "zoom": 0.4,
+   "source": {
+    "label": "NCC",
+    "url": "https://ncc-ccn.gc.ca/projects/mud-lake-trail-rehabilitation-pedestrian-bridge-replacement"
+   },
+   "more": null,
+   "photos": []
+  }
+ ]
+}
