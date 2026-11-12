@@ -1,426 +1,248 @@
 # /// script
 # requires-python = ">=3.11"
-# dependencies = ["numpy"]
+# dependencies = ["numpy", "shapely"]
 # ///
-"""Named places of Helenaveen: style overrides and extra geometry for buildings, plus the viewer's place list.
+"""Named places of Ottawa's west end: their stories for the viewer, and style overrides for their buildings.
 
-Sources: Monumenten in Nederland, Noord-Brabant (1997), Rijksmonumenten photos on Wikimedia Commons,
-OpenStreetMap, and AHN for tower positions and heights.
+Each place is found in OpenStreetMap by its name (scripts/osm_places.py), so it sits on the right building without
+coordinates typed by hand; `latlon` pins the few that have no name there. Every text has its French beside it, which
+goes into fr.json for the viewer.
 
-Output: data/build/landmarks.json
+Sources: Wikipedia (Britannia, Britannia Village, Britannia Yacht Club, Queensway Terrace North, Bridgehead Coffee),
+Heritage Ottawa, the Historical Society of Ottawa, the NCC, the Ottawa Field-Naturalists' Club, Bridgehead and IKEA.
+
+Output: data/build/landmarks.json, and the French of every text in data/build/fr_landmarks.json
 """
 
 import json
 
-import numpy as np
+from config import BUILD
+from geo import wgs_to_utm
+from osm_places import building_at, find
 
-from config import BUILD, RAW
-from geo import wgs_to_rd
+HSO = "https://www.historicalsocietyottawa.ca/publications/ottawa-stories/significant-technological-changes-in-the-city/britannia-on-the-bay-75"
 
-HVT = "https://www.helenaveenvantoen.nl/"  # Het Helenaveen van toen, the village's own history site
-
-# Buildings found by an address or point; `pand` is resolved to the 3D BAG building under that point.
-BUILDINGS = [
+# A place: name, kind and story (each with its French), how to find it, and for buildings a style for the render.
+PLACES = [
     {
-        "name": "Sint-Willibrorduskerk",
-        "note": "Zaalkerk uit 1950 van J. Deltrap, sinds 2024 woningen",
-        "kind": "Voormalige kerk · 1950",
-        "stop": "Sint-Willibrorduskerk",
-        "at": (192080, 377790),
-        "style": "church",
-        "wall": (146, 80, 62),
-        "roof": (70, 72, 80),
-        # Tower from AHN: about 4 m square near the north-west corner, 26 m to the top.
-        "tower": {"x": 192090.0, "y": 377807.4, "w": 4.6, "body": 19.0, "top": 25.5, "cross": True},
+        "name": "Britannia Beach", "fr_name": "Plage Britannia",
+        "find": r"Britannia Beach", "kind": "Beach · since 1900", "fr_kind": "Plage · depuis 1900",
+        "text": "The Ottawa Electric Railway opened a park here in 1900 to sell streetcar rides: for five cents, a "
+                "half-hour trip out Richmond Road from downtown. On fine summer Sundays as many as 25,000 people came "
+                "to swim, picnic and walk the pier. The anchor of the steamer G.B. Greene, which took excursions up "
+                "the river until the 1940s, still lies at the beach.",
+        "fr_text": "L'Ottawa Electric Railway ouvre un parc ici en 1900 pour vendre des trajets en tramway : pour cinq "
+                   "cents, une demi-heure depuis le centre-ville par le chemin Richmond. Les beaux dimanches d'été, "
+                   "jusqu'à 25 000 personnes venaient s'y baigner, pique-niquer et marcher sur la jetée. L'ancre du "
+                   "vapeur G.B. Greene, qui faisait des excursions sur la rivière jusqu'aux années 1940, est encore "
+                   "sur la plage.",
+        "more": HSO,
     },
     {
-        "name": "Protestantse kerk (1867)",
-        "note": "Neoclassicistisch zaalkerkje met dakruiter, rijksmonument",
-        "kind": "Rijksmonument · 1867",
-        "stop": "Protestantse kerk",
-        "at": (191907.3, 378307.1),
-        "style": "church",
-        "wall": (234, 230, 218),
-        "roof": (78, 80, 88),
-        # Dakruiter on the front, seen in AHN as a spike over the canal-side end of the ridge.
-        "turret": {"x": 191911.2, "y": 378298.7, "r": 1.0, "base": 9.4, "body": 12.6, "top": 16.8},
+        "name": "Britannia Pier", "fr_name": "Jetée Britannia",
+        "find": r"Britannia (Pier|Point)|Pier", "kind": "Pier · 1900", "fr_kind": "Jetée · 1900",
+        "text": "Built in fifteen weeks in the spring of 1900 on the boulders of a canal that the Metropolitan "
+                "Electric Company had dug for a power plant that never ran. Ten arc lights lit it at night; during "
+                "the First World War men signed up for the 207th Battalion here.",
+        "fr_text": "Construite en quinze semaines au printemps 1900 sur les blocs d'un canal creusé par la Metropolitan "
+                   "Electric Company pour une centrale qui n'a jamais fonctionné. Dix lampes à arc l'éclairaient le "
+                   "soir; pendant la Première Guerre mondiale, on s'y enrôlait dans le 207e Bataillon.",
+        "more": "https://en.wikipedia.org/wiki/Britannia_Village,_Ottawa",
     },
     {
-        "name": "Zondagsschool (ca. 1880)",
-        "kind": "Ca. 1880",
-        "stop": "Zondagsschool",
-        "at": (191920.1, 378300.0),
-        "style": "house",
-        "wall": (152, 86, 66),
-        "roof": (82, 84, 90),
-        "frame": (236, 234, 226),
+        "name": "Britannia Yacht Club", "fr_name": "Club nautique Britannia",
+        "find": r"Britannia Yacht Club", "kind": "Club · 1887", "fr_kind": "Club · 1887",
+        "text": "Founded in 1887 by Britannia's summer cottagers as the Britannia Aquatic Club, meeting in an old "
+                "sawmill on the water. It is one of the oldest yacht clubs in Canada, at the head of the Deschênes "
+                "Rapids.",
+        "fr_text": "Fondé en 1887 par les estivants de Britannia sous le nom de Britannia Aquatic Club, qui se "
+                   "réunissait dans une ancienne scierie au bord de l'eau. C'est l'un des plus vieux clubs nautiques "
+                   "du Canada, en amont des rapides Deschênes.",
+        "web": "https://byc.ca",
     },
     {
-        "name": "Pastorie (1867)",
-        "note": "Predikantenwoning, rijksmonument",
-        "kind": "Rijksmonument · 1867",
-        "stop": "Pastorie en kazemat",
-        "at": (191902.6, 378289.2),
-        "style": "house",
-        "wall": (150, 90, 70),
-        "roof": (66, 68, 74),
-        "frame": (240, 238, 230),
+        "name": "Mud Lake", "fr_name": "Lac Mud",
+        "find": r"^Mud Lake$", "kind": "Britannia Conservation Area", "fr_kind": "Aire de conservation Britannia",
+        "text": "A bay of the Ottawa River until the early 1960s, when building the water purification plant cut it "
+                "off. Now it is the best birding spot in the city: the NCC counts 269 species of birds here.",
+        "fr_text": "Une baie de la rivière des Outaouais jusqu'au début des années 1960, quand la construction de "
+                   "l'usine de purification l'a isolée. C'est aujourd'hui le meilleur endroit de la ville pour "
+                   "observer les oiseaux : la CCN y compte 269 espèces.",
+        "web": "https://ncc-ccn.gc.ca/places/mud-lake",
     },
     {
-        "name": "Basisschool De Peelparel",
-        "note": "Dorpsschool met zes lokalen uit ca. 1930",
-        "kind": "Basisschool",
-        "address": "Oude Peelstraat 10",
-        "web": "https://www.peelparel.nl",
-        "stop": "Dorpsschool De Peelparel",
-        "at": (191907.0, 377855.0),
-        "style": "school",
-        "wall": (176, 112, 96),
-        "roof": (186, 90, 60),
-        "bell": True,
+        "name": "Britannia Water Purification Plant", "fr_name": "Usine de purification de l'eau Britannia",
+        "find": r"Britannia.*(Water|Purification|Filtration)", "kind": "Waterworks · 1961", "fr_kind": "Usine · 1961",
+        "text": "Built from 1958 to 1961, one of the two plants that make Ottawa's drinking water from the river. Its "
+                "point is where birders come to watch the gulls over the Deschênes Rapids.",
+        "fr_text": "Construite de 1958 à 1961, c'est l'une des deux usines qui produisent l'eau potable d'Ottawa à "
+                   "partir de la rivière. Sa pointe est l'endroit où les ornithologues observent les goélands au-dessus "
+                   "des rapides Deschênes.",
     },
     {
-        "name": "Hoeve Willem III",
-        "note": "Kop-rompboerderij uit 1913, rijksmonument, nu ijsboerderij",
-        "kind": "Koningshoeve · 1913",
-        "address": "Soemeersingel 127",
-        "stop": "Willem III-hoeve",
-        "at": (190290.0, 381292.0),
-        "style": "house",
-        "wall": (126, 70, 56),
-        "roof": (74, 76, 82),
-        "frame": (238, 236, 228),
+        "name": "Old St. Stephen's Church", "fr_name": "Ancienne église St. Stephen",
+        "find": r"St\.? Stephen", "kind": "Church · 1892", "fr_kind": "Église · 1892", "style": "church",
+        "text": "One of the two churches built for the fashionable summer resort of Britannia, and the only one "
+                "left. The city put a heritage plaque on it in 2010.",
+        "fr_text": "L'une des deux églises construites pour la villégiature chic de Britannia, et la seule qui reste. "
+                   "La Ville y a posé une plaque patrimoniale en 2010.",
     },
     {
-        "name": "Wilhelminahoeve",
-        "note": "Kop-rompboerderij uit 1908, rijksmonument",
-        "kind": "Koningshoeve · 1908",
-        "stop": "Wilhelminahoeve",
-        "at": (191131.0, 380087.0),
-        "style": "house",
-        "wall": (130, 72, 58),
-        "roof": (78, 80, 86),
-        "frame": (238, 236, 228),
+        "name": "The Olde Forge", "fr_name": "La Vieille Forge",
+        "find": r"Old(e)? Forge", "kind": "Log building · 1830s", "fr_kind": "Bâtiment en rondins · années 1830",
+        "address": "2730 Carling Avenue",
+        "text": "George Winthrop built this log blacksmith shop in the early 1830s where the Richmond and March roads "
+                "met. It became a tearoom in 1931, a gas station in 1941 and a tourist office in 1958, and since the "
+                "1970s it has been the neighbourhood's community resource centre.",
+        "fr_text": "George Winthrop construit cette forge en rondins au début des années 1830, au croisement des "
+                   "chemins Richmond et March. Elle devient salon de thé en 1931, station-service en 1941, bureau "
+                   "touristique en 1958, et depuis les années 1970 c'est le centre de ressources communautaires du "
+                   "quartier.",
+        "web": "https://www.oldeforge.ca/", "more": "https://heritageottawa.org/en/node/2799",
     },
     {
-        "name": "Gemeenschapshuis De Gouden Helm",
-        "latlon": (51.38802, 5.91843),
-        "address": "Oude Peelstraat 3",
-        "web": "https://www.degoudenhelm.nl",
-        "stop": "Gemeenschapshuis De Gouden Helm",
+        "name": "Britannia United Church", "fr_name": "Église unie Britannia",
+        "find": r"Britannia (Heights )?United", "kind": "Church", "fr_kind": "Église", "style": "church",
+        "text": "One of Ottawa's oldest congregations: its members met in homes from 1869. They moved from Britannia "
+                "village up to this church on Pinecrest Road in 1961.",
+        "fr_text": "L'une des plus anciennes congrégations d'Ottawa : ses membres se réunissaient dans des maisons dès "
+                   "1869. Ils ont quitté le village de Britannia pour cette église du chemin Pinecrest en 1961.",
     },
     {
-        "name": "Hotel Eetcafé In d'Ouwe Peel",
-        "latlon": (51.38892, 5.91938),
-        "kind": "Hotel en eetcafé",
-        "address": "Oude Peelstraat 2",
-        "text": "Hotel en eetcafé midden in het dorp, tegenover de kerk.",
-        "web": "https://www.indouwepeel.nl",
-    },
-    {"name": "Voormalige tabaksschuur (ca. 1870)", "addrs": ["Geldersestraat 10", "Geldersestraat 12"], "kind": "Tabaksschuur · ca. 1870", "address": "Geldersestraat 10 en 12", "stop": "Tabaksschuur"},
-    # From Het Helenaveen van toen; the 3D BAG building years agree that these still stand.
-    {
-        "name": "Tabaksschuur Waldeck-Hoeve",
-        "addrs": ["Geldersestraat 3", "Geldersestraat 5"],
-        "kind": "Tabaksschuur",
-        "address": "Geldersestraat 3 en 5",
-        "text": "Een van de grote tabaksschuren aan de Geldersestraat, toen nog de Geldersche Laan. Een tijd stond de naam Waldeck-Hoeve op de zijgevel; nu zijn het twee huizen. Op de kaart van 1889 is de omgeving geel van de tabaksvelden.",
-        "more": HVT + "de-kaar-van-deel-1",
+        "name": "Frank Ryan Park", "fr_name": "Parc Frank-Ryan",
+        "find": r"Frank Ryan Park", "kind": "Park", "fr_kind": "Parc", "address": "950 Alpine Avenue",
+        "text": "The neighbourhood's back yard: two ball diamonds, tennis and basketball courts, a wading pool in "
+                "summer and a skating rink in winter, with the woods along its edge. A new field house replaces the "
+                "old one.",
+        "fr_text": "La cour arrière du quartier : deux losanges de balle, des terrains de tennis et de basketball, une "
+                   "pataugeoire l'été et une patinoire l'hiver, avec le boisé en bordure. Un nouveau pavillon "
+                   "remplace l'ancien.",
     },
     {
-        "name": "Tabaksschuur Geldersestraat 4 en 6",
-        "addrs": ["Geldersestraat 4", "Geldersestraat 6"],
-        "kind": "Tabaksschuur",
-        "address": "Geldersestraat 4 en 6",
-        "text": "Schuin tegenover de Waldeck-Hoeve staat de volgende grote tabaksschuur van de Geldersestraat, uit de tijd dat hier tabak werd geteeld.",
-        "more": HVT + "de-kaar-van-deel-1",
+        "name": "Elmhurst Woods", "fr_name": "Boisé Elmhurst",
+        "find": r"Elmhurst", "kind": "Woodlot", "fr_kind": "Boisé",
+        "text": "A woodlot in the middle of Queensway Terrace North. Many of its trees were ash, and when the emerald "
+                "ash borer arrived around 2015 the city took the dead ones down and planted hundreds of saplings to "
+                "grow a more varied forest.",
+        "fr_text": "Un boisé au milieu de Queensway Terrace North. Beaucoup de ses arbres étaient des frênes, et quand "
+                   "l'agrile du frêne est arrivé vers 2015, la Ville a abattu les arbres morts et planté des "
+                   "centaines de jeunes arbres pour une forêt plus variée.",
     },
     {
-        "name": "Woonhuis van Jules de Corte",
-        "addrs": ["Geldersestraat 9"],
-        "kind": "Woonhuis",
-        "address": "Geldersestraat 9",
-        "text": "Zanger, pianist en liedjesschrijver Jules de Corte (1924-1996) woonde hier vanaf 1973 tot zijn dood, en werkte er vaak tot diep in de nacht aan zijn liedjes. Hij schreef er ruim 4000, waaronder Ik zou wel eens willen weten en Koning Onbenul.",
-        "more": HVT + "jules-de-corte",
+        "name": "Queensway Terrace North", "fr_name": "Queensway Terrace North",
+        "latlon": (45.35806, -75.78667), "kind": "Neighbourhood · 1958", "fr_kind": "Quartier · 1958",
+        "text": "In 1956 Robert Campeau's firm bought 114 acres of the Arkell farm on Pinecrest Road and built "
+                "family houses on more than 300 lots. The Queensway, cut through in the 1960s, split the new "
+                "neighbourhood into North and South.",
+        "fr_text": "En 1956, l'entreprise de Robert Campeau achète 114 acres de la ferme Arkell, sur le chemin "
+                   "Pinecrest, et construit des maisons familiales sur plus de 300 lots. L'autoroute 417, percée dans "
+                   "les années 1960, coupe le nouveau quartier en deux : Nord et Sud.",
+        "more": "https://en.wikipedia.org/wiki/Queensway_Terrace_North",
     },
     {
-        "name": "Zuivelfabriekje De Fuke",
-        "addrs": ["Helenastraat 18"],
-        "kind": "Ca. 1896",
-        "address": "Helenastraat 18",
-        "text": "Martinus van de Mortel, Tinus de Fauts, begon hier een fabriekje voor roomboter, De Fuke. Het was niet rendabel genoeg en ging al snel weer dicht. Het gebouw staat er nog en is nu een woonhuis.",
-        "more": HVT + "geschiedenis-in-jaartallen",
-    },
-    # The other koningshoeven, from OpenStreetMap (names, BAG building years) and the Rijksmonumenten register.
-    {"name": "Emmahoeve", "latlon": (51.42026, 5.89746), "kind": "Koningshoeve · rijksmonument", "stop": "Emmahoeve"},
-    {
-        "name": "Julianahoeve",
-        "latlon": (51.41126, 5.90111),
-        "kind": "Koningshoeve · 1910",
-        "address": "Soemeersingel 107",
-        "text": "In 1910 bouwde de Maatschappij twee koningshoeven die bijna elkaars evenbeeld zijn: de Emmahoeve en deze Julianahoeve, die in 1911 klaar was. De eerste pachter was Johannes Dekker uit Noord-Holland. Nu is het Landgoed Julianahoeve, met een camping.",
-        "more": HVT + "de-juliana-hoeve",
-        "photo": ("Julianahoeve,_voor-_en_linker_zijgevel_-_Helenaveen_-_20107512_-_RCE.jpg", "De Julianahoeve in 1979, Rijksdienst voor het Cultureel Erfgoed, CC BY-SA 4.0"),
-        "web": "https://www.landgoed-julianahoeve.nl",
+        "name": "IKEA Ottawa", "fr_name": "IKEA Ottawa",
+        "find": r"IKEA", "kind": "Store", "fr_kind": "Magasin", "address": "2685 Iris Street", "style": "barn",
+        "wall": (0, 81, 186), "roof": (150, 150, 146),
+        "text": "The largest IKEA in Canada. It used to be out in Bells Corners; in the early 2010s it was rebuilt, "
+                "much bigger, on the east side of the Pinecrest Shopping Centre, which IKEA owns.",
+        "fr_text": "Le plus grand IKEA au Canada. Il était autrefois à Bells Corners; au début des années 2010, il a "
+                   "été reconstruit, beaucoup plus grand, du côté est du centre commercial Pinecrest, qui appartient à "
+                   "IKEA.",
+        "web": "https://www.ikea.com/ca/en/stores/ottawa/",
     },
     {
-        "name": "Oranjehoeve",
-        "latlon": (51.40502, 5.91000),
-        "kind": "Koningshoeve · 1912",
-        "address": "Soemeersingel 87",
-        "text": "De Maatschappij Helenaveen bouwde deze koningshoeve in 1912, aan de Helenavaart bij het drooggelegde Soemeer, op de plek van een huis dat er in 1889 al stond. Tegenwoordig een groepsaccommodatie.",
-        "more": HVT + "de-kaar-van-deel-1",
-        "photo": ("Oranjehoeve_-_Helenaveen_-_20107510_-_RCE.jpg", "De Oranjehoeve in 1979, Rijksdienst voor het Cultureel Erfgoed, CC BY-SA 4.0"),
-        "web": "https://www.oranjehoeve.com/",
+        "name": "Bridgehead Iris & Greenbank", "fr_name": "Bridgehead Iris et Greenbank",
+        "find": r"Bridgehead", "near": (45.3510, -75.7905), "kind": "Coffeehouse · 2015", "fr_kind": "Café · 2015",
+        "address": "2745 Iris Street",
+        "text": "Opened on 4 August 2015 as Bridgehead's sixteenth coffeehouse, in a new office building at Iris and "
+                "Greenbank. Bridgehead started in 1981, when two United Church ministers and two activists began "
+                "selling fairly traded coffee from Nicaraguan farmers in church basements.",
+        "fr_text": "Ouvert le 4 août 2015, c'est le seizième café Bridgehead, dans un nouvel immeuble de bureaux à "
+                   "l'angle d'Iris et de Greenbank. Bridgehead est né en 1981, quand deux pasteurs de l'Église unie et "
+                   "deux militants ont commencé à vendre le café équitable de paysans du Nicaragua dans des "
+                   "sous-sols d'église.",
+        "web": "https://bridgehead.ca",
     },
     {
-        "name": "Jeugdgebouw De Wiek",
-        "addrs": ["Soemeersingel 31"],
-        "kind": "Voormalige school",
-        "address": "Soemeersingel 31",
-        "text": "Tot 1982 was dit de openbare lagere school De Zonnedauw, die er kwam toen de andere school van het dorp katholiek werd. Sinds 21 mei 1983 is het jeugdgebouw De Wiek, genoemd naar de wijken: de zijtakken van de peelkanalen waar turfschepen konden keren of aanleggen. Op de gevel zit een keramisch reliëf van de Deurnese kunstenaar Frans Jacobs, gemaakt bij De Porceleyne Fles.",
-        "more": HVT + "monumenten-en-kunst",
-    },
-    # Casemate 206S of the Peel-Raamstelling (OpenStreetMap way 949470200, BAG building from 1938).
-    {
-        "name": "Kazemat 206",
-        "at": (191902.8, 378260.3),
-        "kind": "Kazemat · 1938",
-        "text": "Een betonnen kazemat van de Peel-Raamstelling, van het type dat stekelvarken heet. Aan deze kant van de vaart stonden er drie, tussen de protestantse kerk en de Geldersestraat, bemand door soldaten van het 30ste Regiment Infanterie. Alleen nummer 206 staat er nog.",
-        "more": HVT + "de-peel-onder-vuur",
-    },
-    {"name": "Willem de Zwijgerhoeve", "latlon": (51.39099, 5.91658), "kind": "Boerderij · 1934"},
-    {"name": "Wehrmachthuisje", "at": (191577.0, 379760.0), "address": "Koolweg 40", "stop": "Het Wehrmachthuisje aan de Koolweg"},
-    {"name": "Keuterboerderij", "at": (191630.7, 379389.2), "kind": "Rijksmonument", "address": "Soemeersingel 75", "stop": "Keuterboerderij aan de Soemeersingel"},
-    # Businesses, from OpenStreetMap.
-    {
-        "name": "Cafetaria Van Veen",
-        "latlon": (51.38962, 5.91891),
-        "kind": "Cafetaria",
-        "address": "Dominee Swaluestraat 1",
-        "text": "De snackbar van het dorp: friet om mee te nemen, of op het terras.",
-    },
-    {
-        "name": "Esso Helenaveen",
-        "latlon": (51.37943, 5.90877),
-        "kind": "Tankstation",
-        "address": "Zinkskesweg 1",
-        "text": "Tankstation aan de A67, met een Spar express.",
+        "name": "Bridgehead Fairlawn", "fr_name": "Bridgehead Fairlawn",
+        "find": r"Bridgehead", "near": (45.3735, -75.7650), "kind": "Coffeehouse", "fr_kind": "Café",
+        "address": "2140 Carling Avenue",
+        "text": "The Bridgehead in Fairlawn Plaza, on Carling Avenue at Woodroffe.",
+        "fr_text": "Le Bridgehead de la place Fairlawn, sur l'avenue Carling à l'angle de Woodroffe.",
+        "web": "https://bridgehead.ca",
     },
 ]
 
-# Points without a building of their own.
-POINTS = [
-    {
-        "name": "Monument voor de burgerslachtoffers",
-        "latlon": (51.38868, 5.91955),
-        "kind": "Oorlogsmonument · 1985",
-        "text": "Voor de inwoners die door deportatie of oorlogsgeweld omkwamen, onthuld op 4 mei 1985. Twee muurtjes staan voor de fundamenten van het dorp, die de oorlog doorstonden; daartegen rust een driehoekige steen als een dak, met 22 namen.",
-        "more": HVT + "monumenten-en-kunst",
-    },
-    {"name": "Beeld: de jager die het zwijn doodde", "latlon": (51.3887, 5.91966), "kind": "Oorlogsmonument · 1956", "stop": "De jager die het zwijn doodde"},
-    {"name": "Kunstwerk: kiepkarren met turf", "latlon": (51.38868, 5.91982), "kind": "Kunstwerk · 1978", "stop": "Kipkarren op het Kerkplein"},
-    {"name": "Borstbeeld koningin Juliana", "latlon": (51.38939, 5.91762), "kind": "Beeld", "stop": "Koningin Juliana"},
-    # The BGT art object on the corner of the green next to the church; AHN shows a 6 m tall structure there.
-    {
-        "name": "Jules de Corte-carillon",
-        "at": (192040.6, 377827.6),
-        "kind": "Carillon · 1975",
-        "address": "Hannes Joostenplein",
-        "text": "Op het grasveld naast de kerk hangt een carillon met 23 klokken van Eijsbouts uit Asten, betaald door het Koning Willem III-fonds. Bij de opening op 6 december 1975 begeleidde Jules de Corte de dorpsjeugd bij Hertog Jan: zijn debuut als beiaardier. Sinds 1996 draagt het carillon zijn naam, met op een bronzen plaat zijn regel: In de oude toren zingt het carillon.",
-        "more": HVT + "monumenten-en-kunst",
-    },
-    # The only BGT art object along the Pastoor Kerssemakersstraat.
-    {
-        "name": "Kunstwerk: Vierzijdige Driehoek",
-        "at": (191844.4, 377965.9),
-        "kind": "Kunstwerk · 1990",
-        "address": "Pastoor Kerssemakersstraat",
-        "text": "Stalen balken in rood, blauw en geel, van de Bredase kunstenaar Norbert Veeger. Burgemeester Van Genabeek onthulde het op 23 januari 1990.",
-        "more": HVT + "monumenten-en-kunst",
-    },
-    {"name": "Speeltuin 't Turfveldje", "latlon": (51.38773, 5.91842), "kind": "Speeltuin"},
-    # Aardbeiweg 2 is the Protestant cemetery, Aardbeiweg 4 the Catholic one (rijksmonumenten register, Wikidata).
-    {"name": "Protestantse begraafplaats (ca. 1885)", "latlon": (51.38613, 5.91274), "kind": "Rijksmonument", "stop": "Protestantse begraafplaats"},
-    {"name": "Katholieke begraafplaats", "latlon": (51.38511, 5.91346), "kind": "Begraafplaats", "stop": "Het katholieke kerkhof"},
-    {"name": "Sportpark", "latlon": (51.38566, 5.91100), "kind": "Sport"},
-    {
-        "name": "Romeins tempeltje",
-        "latlon": (51.39051, 5.90431),
-        "kind": "Monument · 1998",
-        "text": "Op de vindplaats van de Gouden Helm, die hier in 1910 uit het veen kwam. Joep Coppens maakte het tempeltje van basaltlava, brons en baksteen. In de gevel staat E PALUDE EMERGO: ik kwam boven uit het veen.",
-        "more": HVT + "monumenten-en-kunst",
-        "stop": "De Gouden Helm",
-    },
-    {"name": "Eijndepaal", "latlon": (51.38475, 5.93129), "kind": "Grenspaal"},
-    {"name": "Paal tussen Broemeer en Soemeer", "latlon": (51.40279, 5.91580), "kind": "Grenspaal"},
-    {"name": "Zendmast", "latlon": (51.37999, 5.90874), "kind": "Telecommast"},
-    {"name": "Camping De Peelkant", "latlon": (51.39878, 5.8964), "kind": "Camping", "address": "Centurioweg 7", "web": "https://www.peelkant.com/"},
-    {"name": "Camping de Peelweide", "latlon": (51.37558, 5.93315), "kind": "Camping", "address": "Spiesberg 23", "web": "https://www.peelweide.nl"},
-    {"name": "Camperplaats De Oude Hoeven", "latlon": (51.40924, 5.90605), "kind": "Camperplaats"},
-    {"name": "Brug Spiesberg", "latlon": (51.37756, 5.93492), "kind": "Brug"},
-    # Komoot's description of the monument, from its makers.
-    {
-        "name": "Herrezen uit de vergetelheid",
-        "latlon": (51.40615, 5.91761),
-        "kind": "Monument · 2021",
-        "text": "Voor de 21 mannen die tussen 1940 en 1954 omkwamen bij vijf vliegtuigcrashes in de Peel. Het monument geeft namen aan slachtoffers die lang anoniem bleven. Een initiatief van Piet Snellen en Sjaar Huijs, ontworpen door Ruud van der Beele en onthuld in oktober 2021.",
-    },
-    {
-        "name": "Sporen die bleven",
-        "latlon": (51.40314, 5.91352),
-        "kind": "Oorlogsmonument · 1944-2004",
-        "text": "Voor de kerkrazzia van 8 oktober 1944. Uit Helenaveen werden 143 mensen weggevoerd; 26 mannen overleefden de oorlog niet. Het hoort bij een reeks die in 2004 in 45 dorpen tussen Maas en Peel werd geplaatst; kunstsmid Thijs van de Manakker maakte de smeedijzeren standaard.",
-        "more": HVT + "monumenten-en-kunst",
-    },
-    {
-        "name": "Mijmerplek met de Hellehond",
-        "latlon": (51.40699, 5.90938),
-        "kind": "Kunstwerk",
-        "text": "Hier stond een Koningswoning, in 1888 gebouwd met een schenking van koning Willem III en in 1921 verwoest door een grote veenbrand. Op initiatief van Jan van Woezik is de oude huisput weer uitgegraven, met de Hellehond van de Helenaveense kunstenaar Dirk Verberne.",
-        "more": HVT + "monumenten-en-kunst",
-    },
-    {
-        "name": "Mijnenongeluk 1945",
-        "latlon": (51.38751, 5.91419),
-        "kind": "Oorlog",
-        "text": "Op 19 mei 1945 ruimden Frans van den Eijnden uit Liessel en korporaal Meindert Postma uit Drachten hier mijnen, waar de Lagebrugweg en de Oude Peelstraat samenkomen. Een springmijn ging af en beiden kwamen om.",
-        "more": HVT + "mijnenruimen-aan-de-lagebrugweg",
-    },
-    # Places that are gone.
-    {
-        "name": "Eerste school van Helenaveen",
-        "latlon": (51.38540, 5.92277),
-        "kind": "1861",
-        "text": "In 1861 stelde de Maatschappij hier, op de hoek van de Geldersestraat en de Jan Deckersstraat, een gebouwtje beschikbaar als eerste school. Aan de overkant lag de scheepstimmerwerf. Het was maar een tijdelijke oplossing: al snel kwam er een nieuwe school.",
-        "more": HVT + "scholen",
-    },
-    {
-        "name": "Eerste noodkerk en kerkhof",
-        "addr": "Fruitweg 2",
-        "kind": "1857",
-        "text": "Aan de Fruitweg werd in 1857 een katholieke noodkerk ingericht in de omgebouwde stal van een boerderij. Erbij lag het eerste kerkhof van Helenaveen, zo'n 20 bij 25 meter, waar 35 mensen werden begraven.",
-        "more": HVT + "kerkhof",
-    },
-    {"name": "Turfstrooiselfabriek", "at": (191854.0, 378594.0), "kind": "Rijksmonument, afgebrand in 2025", "stop": "Turfstrooiselfabriek"},
-    {"name": "Kunstwerk: Verleden Veen", "at": (192068.0, 377892.0), "kind": "Kunstwerk · 2006", "stop": "Verleden Veen"},
-    {"name": "Kunstwerk: Peeltroef", "at": (190176.0, 381262.0), "kind": "Kunstwerk · 2014", "stop": "Peeltroef"},
-]
-
-# Series in the viewer's panel: a walk past these places, starting with the one nearest the village.
 CATEGORIES = [
-    ("koningshoeven", "Koningshoeven", ["Wilhelminahoeve", "Emmahoeve", "Julianahoeve", "Oranjehoeve", "Hoeve Willem III"]),
-    ("historisch", "Historische gebouwen", [
-        "Protestantse kerk (1867)", "Pastorie (1867)", "Zondagsschool (ca. 1880)", "Voormalige tabaksschuur (ca. 1870)",
-        "Keuterboerderij", "Basisschool De Peelparel", "Sint-Willibrorduskerk", "Protestantse begraafplaats (ca. 1885)",
-        "Tabaksschuur Waldeck-Hoeve", "Tabaksschuur Geldersestraat 4 en 6", "Woonhuis van Jules de Corte", "Zuivelfabriekje De Fuke",
-        "Jeugdgebouw De Wiek",
-    ]),
-    ("oorlog", "Oorlog en herdenking", [
-        "Monument voor de burgerslachtoffers", "Beeld: de jager die het zwijn doodde", "Mijnenongeluk 1945", "Wehrmachthuisje",
-        "Sporen die bleven", "Herrezen uit de vergetelheid", "Kazemat 206",
-    ]),
-    ("kunst", "Kunst", [
-        "Kunstwerk: kiepkarren met turf", "Beeld: de jager die het zwijn doodde", "Borstbeeld koningin Juliana", "Kunstwerk: Verleden Veen",
-        "Kunstwerk: Peeltroef", "Mijmerplek met de Hellehond", "Romeins tempeltje", "Jules de Corte-carillon",
-        "Kunstwerk: Vierzijdige Driehoek",
-    ]),
-    ("verdwenen", "Verdwenen", ["Eerste school van Helenaveen", "Eerste noodkerk en kerkhof", "Turfstrooiselfabriek"]),
-    ("bedrijven", "Bedrijven", [
-        "Hotel Eetcafé In d'Ouwe Peel", "Cafetaria Van Veen", "Hoeve Willem III", "Oranjehoeve", "Julianahoeve", "Camping De Peelkant",
-        "Camping de Peelweide", "Camperplaats De Oude Hoeven", "Esso Helenaveen",
-    ]),
+    ("britannia", "Britannia by the Bay", "Britannia au bord de la baie",
+     ["Britannia Beach", "Britannia Pier", "Britannia Yacht Club", "Mud Lake", "Britannia Water Purification Plant",
+      "Old St. Stephen's Church"]),
+    ("neighbourhood", "The neighbourhood", "Le quartier",
+     ["Queensway Terrace North", "Frank Ryan Park", "Elmhurst Woods", "Britannia United Church", "The Olde Forge"]),
+    ("coffee", "Coffee and shops", "Cafés et magasins", ["Bridgehead Iris & Greenbank", "Bridgehead Fairlawn", "IKEA Ottawa"]),
 ]
 
 # What the viewer shows when a place is clicked; the rest of an entry is for the render.
 INFO = ("note", "kind", "text", "address", "web", "more", "photo", "stop")
-
-# A steel lattice telecom mast next to the A67 (three antenna entries in OSM, one structure in AHN).
-MASTS = [{"latlon": (51.37999, 5.90874), "height": 32.0, "base": 2.6, "tip": 0.7}]
+STYLE = ("style", "wall", "roof", "frame", "tower", "turret", "bell", "name")
 
 
-def point_in_ring(x, y, ring):
-    inside = False
-    for (x1, y1), (x2, y2) in zip(ring, np.roll(ring, -1, axis=0)):
-        if (y1 > y) != (y2 > y) and x < (x2 - x1) * (y - y1) / (y2 - y1) + x1:
-            inside = not inside
-    return inside
+def locate(p):
+    if "latlon" in p:
+        x, y = wgs_to_utm(*p["latlon"])
+        return {"x": x, "y": y, "building": building_at(x, y), "name": p["name"]}
+    if "near" in p:
+        # Several places share a name (two Bridgeheads): take the match closest to a rough position.
+        from osm_places import _index
 
+        nx, ny = wgs_to_utm(*p["near"])
+        import re
 
-ADDRESSES = None
-
-
-def address_xy(name):
-    """RD position of a BAG address such as "Geldersestraat 3" (data/raw/addresses.json, from scripts/fetch.py)."""
-    global ADDRESSES
-    if ADDRESSES is None:
-        ADDRESSES = {label.replace(", Helenaveen", "").split(", ")[0]: (x, y) for x, y, label in json.loads((RAW / "addresses.json").read_text())}
-    return ADDRESSES[name]
-
-
-def building_at(rings, x, y):
-    for rid, ring, a in rings:
-        if point_in_ring(x, y, ring):
-            return rid, a
-    return None, None
+        rx = re.compile(p["find"], re.I)
+        best = None
+        for name, el, shape in _index()[0]:
+            if rx.search(name):
+                c = shape.representative_point() if shape.area else shape.centroid
+                d = (c.x - nx) ** 2 + (c.y - ny) ** 2
+                if best is None or d < best[0]:
+                    best = (d, c, el)
+        if best is None or best[0] > 400**2:
+            raise KeyError(f"{p['name']}: nothing named like {p['find']!r} near {p['near']}")
+        _, c, el = best
+        bid = f"{el['type'][0]}{el['id']}" if "building" in el.get("tags", {}) else building_at(c.x, c.y, near=3)
+        return {"x": c.x, "y": c.y, "building": bid, "name": el["tags"]["name"]}
+    return find(p["find"], p.get("osm_kind"))
 
 
 def main():
-    feats = [json.loads(line) for line in open(RAW / "3dbag.jsonl")]
-    rings = []
-    for f in feats:
-        t = f["transform"]
-        V = np.array(f["vertices"], dtype=np.float64) * t["scale"] + t["translate"]
-        co = f["CityObjects"][f["id"]]
-        rings.append((f["id"], V[co["geometry"][0]["boundaries"][0][0]][:, :2], co["attributes"]))
-
     out = {"buildings": {}, "places": [], "masts": [], "hotspots": [], "categories": []}
-    for b in BUILDINGS:
-        if "addrs" in b:
-            pts = [address_xy(a) for a in b["addrs"]]
-            pids = [building_at(rings, *pt)[0] for pt in pts]
-            assert all(pids), f"{b['name']}: no building at {b['addrs']}"
-            x, y = np.mean(pts, axis=0)
-            out["places"].append({"name": b["name"], "note": b.get("note"), "x": x, "y": y, "h": 4.0})
-            out["hotspots"].append({"name": b["name"], "pids": pids, "x": x, "y": y, **{k: b[k] for k in INFO if k in b}})
-            print(f"{b['name']}: {', '.join(pids)}")
+    fr = {}
+    for p in PLACES:
+        try:
+            hit = locate(p)
+        except KeyError as e:
+            print(f"  skipped: {e}")
             continue
-        x, y = b["at"] if "at" in b else wgs_to_rd(*b["latlon"])
-        pid, attrs = None, None
-        for rid, ring, a in rings:
-            if point_in_ring(x, y, ring):
-                pid, attrs = rid, a
-                break
-        if pid is None:
-            d = [(np.hypot(*(ring.mean(0) - (x, y))), rid, a) for rid, ring, a in rings]
-            dist, pid, attrs = min(d, key=lambda t: t[0])
-            if dist > 20:
-                pid = None
-        height = ((attrs or {}).get("b3_h_dak_max") or 0) - ((attrs or {}).get("b3_h_maaiveld") or 0)
-        if "tower" in b:
-            height = b["tower"]["top"]
-        elif "turret" in b:
-            height = b["turret"]["top"]
-        out["places"].append({"name": b["name"], "note": b.get("note"), "x": x, "y": y, "h": round(height, 1)})
-        if pid and "style" in b:
-            out["buildings"][pid] = {k: v for k, v in b.items() if k not in ("at", "latlon", *INFO)}
+        x, y, pid = hit["x"], hit["y"], hit["building"] if p.get("style") or p.get("on_building", True) else None
+        for k in ("name", "kind", "text", "note"):
+            if p.get(k) and p.get(f"fr_{k}"):
+                fr[p[k]] = p[f"fr_{k}"]
+        out["places"].append({"name": p["name"], "note": p.get("note"), "x": x, "y": y, "h": 4.0 if pid else 2.0})
+        spot = {"name": p["name"], "x": x, "y": y, **{k: p[k] for k in INFO if k in p}}
         if pid:
-            out["hotspots"].append({"name": b["name"], "pid": pid, "x": x, "y": y, **{k: b[k] for k in INFO if k in b}})
-        print(f"{b['name']}: {pid or 'no building'}")
-    for p in POINTS:
-        x, y = p["at"] if "at" in p else address_xy(p["addr"]) if "addr" in p else wgs_to_rd(*p["latlon"])
-        out["places"].append({"name": p["name"], "note": p.get("note"), "x": x, "y": y, "h": 2.0})
-        out["hotspots"].append({"name": p["name"], "x": x, "y": y, **{k: p[k] for k in INFO if k in p}})
-    for m in MASTS:
-        x, y = wgs_to_rd(*m["latlon"])
-        out["masts"].append({**{k: v for k, v in m.items() if k != "latlon"}, "x": x, "y": y})
+            spot["pid"] = pid
+            if p.get("style"):
+                out["buildings"][pid] = {k: p[k] for k in STYLE if k in p}
+        out["hotspots"].append(spot)
+        print(f"{p['name']}: {hit['name']} {'building ' + pid if pid else '(point)'}")
     names = {h["name"] for h in out["hotspots"]}
-    for key, label, members in CATEGORIES:
-        missing = [n for n in members if n not in names]
-        assert not missing, f"{label}: no hotspot for {missing}"
+    for key, label, fr_label, members in CATEGORIES:
+        members = [n for n in members if n in names]
+        fr[label] = fr_label
         out["categories"].append({"key": key, "label": label, "names": members})
     BUILD.mkdir(parents=True, exist_ok=True)
-    (BUILD / "landmarks.json").write_text(json.dumps(out, indent=1))
+    (BUILD / "landmarks.json").write_text(json.dumps(out, indent=1, ensure_ascii=False))
+    (BUILD / "fr_landmarks.json").write_text(json.dumps(fr, indent=1, ensure_ascii=False))
 
 
 if __name__ == "__main__":

@@ -1,20 +1,20 @@
 <!doctype html>
-<html lang="nl">
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Isometrisch Helenaveen</title>
-<meta name="description" content="Het veendorp Helenaveen in miniatuur, nagebouwd uit openbare kaarten, hoogtemetingen en een luchtfoto.">
+<title>Isometric Ottawa West</title>
+<meta name="description" content="Britannia, Queensway Terrace North and Ottawa's west end in miniature, rebuilt from open maps, lidar and an aerial photo.">
 <meta property="og:type" content="website">
-<meta property="og:url" content="https://jankeesvw.github.io/isometric-helenaveen/">
-<meta property="og:title" content="Isometrisch Helenaveen">
-<meta property="og:description" content="Het veendorp Helenaveen in miniatuur, nagebouwd uit openbare kaarten, hoogtemetingen en een luchtfoto.">
-<meta property="og:image" content="https://jankeesvw.github.io/isometric-helenaveen/og.png">
+<meta property="og:url" content="SITE_URL">
+<meta property="og:title" content="Isometric Ottawa West">
+<meta property="og:description" content="Britannia, Queensway Terrace North and Ottawa's west end in miniature, rebuilt from open maps, lidar and an aerial photo.">
+<meta property="og:image" content="SITE_URLog.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
-<meta property="og:image:alt" content="Helenaveen in isometrische pixel art op een avond, met de kerk, de Helenavaart en brandende straatlantaarns">
+<meta property="og:image:alt" content="Ottawa's west end in isometric pixel art, from the Queensway to Britannia Bay on the Ottawa River">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:image" content="https://jankeesvw.github.io/isometric-helenaveen/og.png">
+<meta name="twitter:image" content="SITE_URLog.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Serif:wght@500;600&family=IBM+Plex+Sans:wght@400;500&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <style>
@@ -26,7 +26,7 @@
     --fg: #ece6d6;
     --muted: #a3a497;
     --peat: #d2b47a;       /* the sand under the peat, from the side of the block */
-    --water: #6fa6cf;      /* the Helenavaart */
+    --water: #6fa6cf;      /* the Ottawa River */
     --display: "IBM Plex Serif", Georgia, serif;
     --body: "IBM Plex Sans", system-ui, sans-serif;
     --mono: "IBM Plex Mono", ui-monospace, monospace;
@@ -206,7 +206,7 @@
   #legend i { display: inline-block; width: 18px; height: 0; border-top: 3px dashed #e2574c; vertical-align: middle; margin-right: 4px; }
   #legend i.long { border-top: 4px solid #f2c14e; }
   #legend b { font-weight: inherit; }
-  /* Helenaveen van toen: a guided tour with a paper card for each stop. */
+  /* Britannia back then: a guided tour with a paper card for each stop. */
   body.tour #readout, body.tour #minimap-frame { display: none; }
   .stop {
     width: 26px;
@@ -342,7 +342,7 @@
 </style>
 </head>
 <body>
-<div id="map" aria-label="Isometrische kaart van Helenaveen" data-en-label="Isometric map of Helenaveen"></div>
+<div id="map" aria-label="Isometric map of Ottawa's west end" data-fr-label="Carte isométrique de l'ouest d'Ottawa"></div>
 <svg width="0" height="0" style="position: absolute" aria-hidden="true">
   <filter id="dusk" color-interpolation-filters="sRGB">
     <feColorMatrix type="matrix" values="0.24 0.05 0.02 0 0  0.04 0.28 0.06 0 0.01  0.05 0.11 0.46 0 0.04  0 0 0 1 0"/>
@@ -353,57 +353,74 @@
 
 <section id="intro" class="panel">
   <div class="intro-head">
-    <h1>Helenaveen</h1>
-    <button type="button" id="intro-toggle" aria-expanded="true" aria-controls="intro-body" aria-label="Menu in- of uitklappen" data-en-label="Show or hide the menu"><svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true"><path d="M3 5l4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+    <h1 data-fr="Ottawa Ouest">Ottawa West</h1>
+    <button type="button" id="intro-toggle" aria-expanded="true" aria-controls="intro-body" aria-label="Show or hide the menu" data-fr-label="Afficher ou masquer le menu"><svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true"><path d="M3 5l4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
   </div>
   <div id="intro-body">
-  <p data-en="The peat village on the Helenavaart canal in miniature, from the A67 motorway to the Willem III farm.">Het veendorp aan de Helenavaart in miniatuur, van de A67 tot de Willem III-hoeve.</p>
-  <p class="long" data-en="Every house, every greenhouse and every tree stands in its real place, rebuilt from public maps, height measurements and an aerial photo. Scroll or pinch to zoom, or look up an address below.">Elk huis, elke kas en elke boom staat op zijn echte plek, nagebouwd uit openbare kaarten, hoogtemetingen en een luchtfoto. Scroll of knijp om te zoomen, of zoek hieronder een adres.</p>
+  <p data-fr="Britannia et Queensway Terrace North en miniature, de l'autoroute 417 à la baie Britannia sur la rivière des Outaouais.">Britannia and Queensway Terrace North in miniature, from the Queensway to Britannia Bay on the Ottawa River.</p>
+  <p class="long" data-fr="Chaque maison et chaque arbre est à sa vraie place, reconstruit à partir de cartes ouvertes, du lidar et d'une photo aérienne. Faites défiler ou pincez pour zoomer, ou cherchez une adresse ci-dessous.">Every house and every tree stands in its real place, rebuilt from open maps, lidar and an aerial photo. Scroll or pinch to zoom, or look up an address below.</p>
   <form id="search" role="search">
-    <input id="goto" list="place-list" placeholder="Ga naar een adres of plek…" autocomplete="off" aria-label="Ga naar een adres of plek" data-en-placeholder="Go to an address or place…" data-en-label="Go to an address or place">
+    <input id="goto" list="place-list" placeholder="Go to an address or place…" autocomplete="off" aria-label="Go to an address or place" data-fr-placeholder="Aller à une adresse ou un lieu…" data-fr-label="Aller à une adresse ou un lieu">
     <datalist id="place-list"></datalist>
   </form>
   <div id="found" aria-live="polite"></div>
-  <div id="legend"><span><i></i><b data-en="Walking junctions">Wandelknooppunten</b></span><span><i class="long"></i><b data-en="LAW 13 trail Dwars door Brabant">LAW 13 Dwars door Brabant</b></span></div>
-  <div id="places" role="group" aria-label="Snel naar" data-en-label="Go to">
-    <button type="button" data-rd="191850,377850" data-en="Village">Dorp</button>
-    <button type="button" data-place="Sint-Willibrorduskerk" data-en="Church">Kerk</button>
-    <button type="button" data-rd="192280,377570" data-en="Greenhouses">Kassen</button>
-    <button type="button" data-rd="192750,378900">Peel</button>
-    <button type="button" data-place="Hoeve Willem III">Willem III</button>
-    <button type="button" data-rd="191950,376660">A67</button>
-    <button type="button" id="routes-toggle" aria-pressed="false" data-en="Walking routes">Wandelroutes</button>
+  <div id="legend"><span><i></i><b data-fr="Sentiers locaux">Local trails</b></span><span><i class="long"></i><b data-fr="Grands sentiers">Long-distance trails</b></span></div>
+  <div id="places" role="group" aria-label="Go to" data-fr-label="Aller à">
+    <button type="button" data-place="Britannia Beach" data-fr="Plage">Beach</button>
+    <button type="button" data-place="Mud Lake" data-fr="Lac Mud">Mud Lake</button>
+    <button type="button" data-place="Frank Ryan Park" data-fr="Parc Frank-Ryan">Frank Ryan Park</button>
+    <button type="button" data-place="IKEA Ottawa">IKEA</button>
+    <button type="button" data-place="The Olde Forge" data-fr="La Vieille Forge">Old Forge</button>
+    <button type="button" id="routes-toggle" aria-pressed="false" data-fr="Sentiers">Trails</button>
   </div>
-  <div id="series" role="group" aria-label="Ontdek" data-en-label="Explore">
-    <span data-en="Explore">Ontdek</span>
-    <button type="button" id="tour-toggle" aria-pressed="false" data-en="Helenaveen back then">Helenaveen van toen</button>
+  <div id="series" role="group" aria-label="Explore" data-fr-label="Explorer">
+    <span data-fr="Explorer">Explore</span>
+    <button type="button" id="tour-toggle" aria-pressed="false" data-fr="Britannia d'antan">Britannia back then</button>
   </div>
   </div>
 </section>
 
-<div id="zoom" class="panel" role="group" aria-label="Weergave" data-en-label="View">
-  <button type="button" id="zoom-in" aria-label="Inzoomen" data-en-label="Zoom in">+</button>
-  <button type="button" id="zoom-out" aria-label="Uitzoomen" data-en-label="Zoom out">−</button>
-  <button type="button" id="zoom-home" aria-label="Terug naar het beginpunt" data-en-label="Back to the starting point">⌂</button>
-  <button type="button" id="turn" aria-label="Kaart een kwartslag draaien" title="Draaien" data-en-label="Turn the map a quarter" data-en-title="Turn" hidden><svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true"><circle cx="9" cy="9" r="7.2" fill="none" stroke="currentColor" stroke-width="1.2" opacity=".45"/><g id="needle"><path d="M9 2.6l2.3 6.4H6.7z" fill="currentColor"/><path d="M9 15.4l2.3-6.4H6.7z" fill="currentColor" opacity=".35"/></g></svg></button>
-  <button type="button" id="music" aria-label="Muziek aan of uit" data-en-label="Music on or off" aria-pressed="false"><svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true"><path d="M6.6 13.2V4.3l8-1.8v9.2" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><ellipse cx="4.6" cy="13.3" rx="2.1" ry="1.7" fill="currentColor"/><ellipse cx="12.6" cy="11.8" rx="2.1" ry="1.7" fill="currentColor"/></svg></button>
-  <button type="button" id="evening" aria-label="Avond aan of uit" data-en-label="Evening on or off" aria-pressed="false"><svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true"><mask id="moon-cut"><rect width="18" height="18" fill="#fff"/><circle cx="12.4" cy="6" r="5.2" fill="#000"/></mask><circle cx="8.6" cy="9.6" r="6.2" fill="currentColor" mask="url(#moon-cut)"/><circle cx="14.2" cy="12.4" r=".9" fill="currentColor" opacity=".7"/></svg></button>
+<div id="zoom" class="panel" role="group" aria-label="View" data-fr-label="Vue">
+  <button type="button" id="zoom-in" aria-label="Zoom in" data-fr-label="Zoom avant">+</button>
+  <button type="button" id="zoom-out" aria-label="Zoom out" data-fr-label="Zoom arrière">−</button>
+  <button type="button" id="zoom-home" aria-label="Back to the starting point" data-fr-label="Retour au point de départ">⌂</button>
+  <button type="button" id="turn" aria-label="Turn the map a quarter" title="Turn" data-fr-label="Tourner la carte d'un quart de tour" data-fr-title="Tourner" hidden><svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true"><circle cx="9" cy="9" r="7.2" fill="none" stroke="currentColor" stroke-width="1.2" opacity=".45"/><g id="needle"><path d="M9 2.6l2.3 6.4H6.7z" fill="currentColor"/><path d="M9 15.4l2.3-6.4H6.7z" fill="currentColor" opacity=".35"/></g></svg></button>
+  <button type="button" id="music" aria-label="Music on or off" data-fr-label="Musique" aria-pressed="false"><svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true"><path d="M6.6 13.2V4.3l8-1.8v9.2" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><ellipse cx="4.6" cy="13.3" rx="2.1" ry="1.7" fill="currentColor"/><ellipse cx="12.6" cy="11.8" rx="2.1" ry="1.7" fill="currentColor"/></svg></button>
+  <button type="button" id="evening" aria-label="Evening on or off" data-fr-label="Soirée" aria-pressed="false"><svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true"><mask id="moon-cut"><rect width="18" height="18" fill="#fff"/><circle cx="12.4" cy="6" r="5.2" fill="#000"/></mask><circle cx="8.6" cy="9.6" r="6.2" fill="currentColor" mask="url(#moon-cut)"/><circle cx="14.2" cy="12.4" r=".9" fill="currentColor" opacity=".7"/></svg></button>
 </div>
 
 <div id="readout" class="panel">
-  <div id="coords"><b>GPS</b> 51,3886° N · 5,9166° O</div>
+  <div id="coords"><b>GPS</b> 45.3605° N · 75.7935° W</div>
   <div id="scale">1 pixel = 25 cm</div>
-  <div class="credits" data-en-html="Data: &lt;a href=&quot;https://3dbag.nl&quot; target=&quot;_blank&quot; rel=&quot;noopener&quot;&gt;3D BAG&lt;/a&gt;, BGT, AHN and aerial photo via &lt;a href=&quot;https://www.pdok.nl&quot; target=&quot;_blank&quot; rel=&quot;noopener&quot;&gt;PDOK&lt;/a&gt;, &lt;a href=&quot;https://www.openstreetmap.org/copyright&quot; target=&quot;_blank&quot; rel=&quot;noopener&quot;&gt;OpenStreetMap&lt;/a&gt;">Data: <a href="https://3dbag.nl" target="_blank" rel="noopener">3D BAG</a>, BGT, AHN en luchtfoto via <a href="https://www.pdok.nl" target="_blank" rel="noopener">PDOK</a>, <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a></div>
+  <div class="credits" data-fr-html="Données&nbsp;: &lt;a href=&quot;https://open.canada.ca/data/fr/dataset/957782bf-847c-4644-a757-e383c0057995&quot; target=&quot;_blank&quot; rel=&quot;noopener&quot;&gt;MNEHR&lt;/a&gt; (RNCan), &lt;a href=&quot;https://data.ontario.ca/fr/dataset/open-ontario-imagery&quot; target=&quot;_blank&quot; rel=&quot;noopener&quot;&gt;DRAPE 2024&lt;/a&gt; (Ontario), &lt;a href=&quot;https://www.openstreetmap.org/copyright&quot; target=&quot;_blank&quot; rel=&quot;noopener&quot;&gt;OpenStreetMap&lt;/a&gt;">Data: <a href="https://open.canada.ca/data/en/dataset/957782bf-847c-4644-a757-e383c0057995" target="_blank" rel="noopener">HRDEM</a> (NRCan), <a href="https://data.ontario.ca/dataset/open-ontario-imagery" target="_blank" rel="noopener">DRAPE 2024</a> (Ontario), <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a></div>
 </div>
 
 <div id="minimap-frame" class="panel" aria-hidden="true"><div id="minimap"></div></div>
 
-<button type="button" id="make" aria-haspopup="dialog" data-en="Make your own village">Maak je eigen dorp</button>
+<button type="button" id="make" aria-haspopup="dialog" data-fr="Faites votre quartier">Make your own</button>
 <dialog id="make-dialog" aria-labelledby="make-title">
-  <h2 id="make-title" data-en="Make this for your own village">Maak dit voor je eigen dorp</h2>
-  <p class="by" data-en-html="Hi, I&#x27;m &lt;a class=&quot;x&quot; href=&quot;https://x.com/intent/follow?screen_name=jankeesvw&quot; target=&quot;_blank&quot; rel=&quot;noopener&quot;&gt;&lt;svg viewBox=&quot;0 0 24 24&quot; aria-hidden=&quot;true&quot;&gt;&lt;path d=&quot;M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z&quot;/&gt;&lt;/svg&gt;@jankeesvw&lt;/a&gt;. I rebuilt my village Helenaveen in isometric pixel art, with Claude Code and nothing but open data.">Hoi, ik ben <a class="x" href="https://x.com/intent/follow?screen_name=jankeesvw" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>@jankeesvw</a>. Ik heb mijn dorp Helenaveen nagebouwd in isometrische pixel art, met Claude Code en alleen open data.</p>
-  <p data-en="Want one of your own village or town, anywhere in the world? Paste this prompt into Claude Code or another coding agent and fill in your place. The agent finds the open data for your country: buildings, heights, aerial photos and OpenStreetMap. Then tell it the stories that only the people who live there know.">Wil je er ook een van jouw dorp of stad, waar ook ter wereld? Plak deze opdracht in Claude Code of een andere codeeragent en vul je plek in. De agent zoekt de open data van jouw land erbij: gebouwen, hoogtes, luchtfoto's en OpenStreetMap. Vertel hem daarna de verhalen die alleen de mensen die er wonen kennen.</p>
-  <pre id="make-prompt" data-en="Make an isometric pixel-art map of [your village or town, and the country], like Isometric Helenaveen: https://jankeesvw.github.io/isometric-helenaveen/
+  <h2 id="make-title" data-fr="Faites-en une de votre quartier">Make this for your own place</h2>
+  <p class="by" data-fr-html="Une adaptation d'&lt;a href=&quot;https://jankeesvw.github.io/isometric-helenaveen/&quot; target=&quot;_blank&quot; rel=&quot;noopener&quot;&gt;Isometric Helenaveen&lt;/a&gt; de @jankeesvw, refaite pour Ottawa avec Claude et des données ouvertes canadiennes.">A fork of <a href="https://jankeesvw.github.io/isometric-helenaveen/" target="_blank" rel="noopener">Isometric Helenaveen</a> by @jankeesvw, redone for Ottawa with Claude and Canadian open data.</p>
+  <p data-fr="Vous en voulez une de votre village ou de votre ville, n'importe où dans le monde? Collez cette consigne dans Claude Code ou un autre agent de programmation et indiquez votre lieu. L'agent trouve les données ouvertes de votre pays : bâtiments, hauteurs, photos aériennes et OpenStreetMap. Racontez-lui ensuite les histoires que seuls les gens qui y vivent connaissent.">Want one of your own village or town, anywhere in the world? Paste this prompt into Claude Code or another coding agent and fill in your place. The agent finds the open data for your country: buildings, heights, aerial photos and OpenStreetMap. Then tell it the stories that only the people who live there know.</p>
+  <pre id="make-prompt" data-fr="Fais une carte isométrique en pixel art de [ton village ou ta ville, et le pays], comme Isometric Helenaveen : https://jankeesvw.github.io/isometric-helenaveen/
+
+Utilise le code de https://github.com/jankeesvw/isometric-helenaveen comme exemple. Clone le dépôt et lis d&#x27;abord le README : il décrit toute la chaîne, des données ouvertes jusqu&#x27;à la visionneuse.
+
+L&#x27;exemple utilise des données ouvertes néerlandaises : les coordonnées RD (EPSG:28992), les bâtiments de la 3D BAG, le sol de la BGT, une photo aérienne de PDOK et les hauteurs des arbres et du terrain de l&#x27;AHN. Trouve les données ouvertes de mon pays qui s&#x27;en rapprochent le plus et adapte les scripts :
+- un système de coordonnées métrique pour la zone, par exemple la bonne zone UTM;
+- des bâtiments avec leur hauteur et, idéalement, la forme du toit : un jeu de données national de bâtiments 3D, ou sinon les bâtiments d&#x27;OpenStreetMap ou d&#x27;Overture Maps avec des hauteurs tirées d&#x27;un modèle d&#x27;élévation;
+- un modèle de surface et un modèle de terrain nu, par exemple des données lidar nationales ou un modèle mondial, pour les arbres et le relief;
+- une photo aérienne ou une carte d&#x27;utilisation du sol pour colorer le sol;
+- OpenStreetMap pour les routes, l&#x27;eau, les sentiers et la circulation, ce qui fonctionne partout.
+Si mon lieu est aux Pays-Bas, tu peux utiliser les sources de l&#x27;exemple telles quelles.
+
+Ensuite :
+1. Définis la zone, quelques kilomètres de côté, dans scripts/config.py.
+2. Lance ./build.sh, regarde le résultat avec python3 -m http.server 8000 -d site et montre-moi des captures d&#x27;écran.
+3. Remplace les lieux de scripts/landmarks.py par des bâtiments et des lieux de mon village ou de ma ville, chacun avec une courte histoire. Retire ou remplace ce qui n&#x27;appartient qu&#x27;à Helenaveen : la visite (scripts/build_history.py) et les points fixes de viewer/index.html, comme le point de départ, le centre du village pour les lampadaires et les baigneurs dans le canal.
+4. Mets la carte en ligne, par exemple avec GitHub Pages (deploy.sh).
+
+Travaille étape par étape, vérifie les licences des données que tu utilises, et pose-moi des questions sur les histoires et les lieux que seuls les gens qui y vivent connaissent.">Make an isometric pixel-art map of [your village or town, and the country], like Isometric Helenaveen: https://jankeesvw.github.io/isometric-helenaveen/
 
 Use the code at https://github.com/jankeesvw/isometric-helenaveen as an example. Clone the repo and read the README first: it describes the whole pipeline, from open data to the viewer.
 
@@ -413,7 +430,7 @@ The example uses Dutch open data: RD coordinates (EPSG:28992), buildings from th
 - a surface model and a bare-earth elevation model, for example national lidar data or a global model, for the trees and the terrain;
 - an aerial photo or a land-use map to colour the ground;
 - OpenStreetMap for roads, water, paths and the traffic, which works everywhere.
-If my place is in the Netherlands, you can use the example&#x27;s sources as they are.
+If my place is in the Netherlands, you can use the example's sources as they are.
 
 Then:
 1. Set the area, a few kilometres square, in scripts/config.py.
@@ -421,34 +438,16 @@ Then:
 3. Replace the places in scripts/landmarks.py with buildings and places from my village or town, each with a short story. Take out or replace what belongs to Helenaveen only: the tour (scripts/build_history.py) and the fixed spots in viewer/index.html, such as the starting point, the village centre for the street lamps and the swimmers in the canal.
 4. Put the map online, for example with GitHub Pages (deploy.sh).
 
-Work step by step, check the licences of the data you use, and ask me about the stories and places that only the people who live there know.">Maak een isometrische pixel-art-kaart van [jouw dorp of stad, en het land], net als Isometrisch Helenaveen: https://jankeesvw.github.io/isometric-helenaveen/
-
-Gebruik de code van https://github.com/jankeesvw/isometric-helenaveen als voorbeeld. Clone de repo en lees eerst de README: die beschrijft de hele pijplijn, van open data tot de viewer.
-
-Het voorbeeld gebruikt Nederlandse open data: RD-coördinaten (EPSG:28992), gebouwen uit de 3D BAG, de grond uit de BGT, een luchtfoto van PDOK en hoogtes van bomen en reliëf uit de AHN. Zoek voor mijn land de open data die daar het dichtst bij komt en pas de scripts daarop aan:
-- een metrisch coördinatenstelsel voor het gebied, bijvoorbeeld de juiste UTM-zone;
-- gebouwen met hoogtes en het liefst dakvormen: een nationaal 3D-gebouwenbestand, of anders de gebouwen uit OpenStreetMap of Overture Maps met hoogtes uit een hoogtemodel;
-- een hoogtemodel van het oppervlak en van de kale grond, bijvoorbeeld nationale lidar-data of een wereldwijd model, voor de bomen en het reliëf;
-- een luchtfoto of een kaart van het grondgebruik om de grond in te kleuren;
-- OpenStreetMap voor wegen, water, paden en het verkeer, dat werkt overal.
-Ligt mijn plek in Nederland, dan kun je de bronnen van het voorbeeld zo gebruiken.
-
-Daarna:
-1. Zet het gebied, een paar kilometer in het vierkant, in scripts/config.py.
-2. Draai ./build.sh, bekijk het resultaat met python3 -m http.server 8000 -d site en laat me screenshots zien.
-3. Vervang de plekken in scripts/landmarks.py door gebouwen en plekken van mijn dorp of stad, elk met een kort verhaal. Haal de dingen die alleen bij Helenaveen horen eruit of vervang ze: de rondleiding (scripts/build_history.py) en de vaste punten in viewer/index.html, zoals het beginpunt, de dorpskern voor de lantaarns en de zwemmers in het kanaal.
-4. Zet de kaart online, bijvoorbeeld met GitHub Pages (deploy.sh).
-
-Werk stap voor stap, controleer de licenties van de data die je gebruikt, en vraag me naar de verhalen en plekken die alleen de mensen die er wonen kennen.</pre>
+Work step by step, check the licences of the data you use, and ask me about the stories and places that only the people who live there know.</pre>
   <nav>
-    <button type="button" id="make-copy" data-en="Copy the prompt">Kopieer de opdracht</button>
-    <a href="https://github.com/jankeesvw/isometric-helenaveen" target="_blank" rel="noopener" data-en="Code on GitHub">Code op GitHub</a>
-    <button type="button" class="close" id="make-close" data-en="Close">Sluiten</button>
+    <button type="button" id="make-copy" data-fr="Copier la consigne">Copy the prompt</button>
+    <a href="REPO_URL" target="_blank" rel="noopener" data-fr="Code sur GitHub">Code on GitHub</a>
+    <button type="button" class="close" id="make-close" data-fr="Fermer">Close</button>
   </nav>
 </dialog>
 <div id="tip" hidden></div>
 
-<section id="tour" class="card" hidden aria-live="polite" aria-label="Rondleiding Helenaveen van toen" data-en-label="Tour: Helenaveen back then">
+<section id="tour" class="card" hidden aria-live="polite" aria-label="Tour: Britannia back then" data-fr-label="Visite : Britannia d'antan">
   <div class="card-head"><span id="tour-year"></span><span id="tour-count"></span></div>
   <h2 id="tour-title"></h2>
   <figure id="tour-figure" hidden><div id="tour-frame" class="frame"><img id="tour-img" alt=""></div><div id="tour-dots"></div><figcaption id="tour-credit"></figcaption></figure>
@@ -456,13 +455,13 @@ Werk stap voor stap, controleer de licenties van de data die je gebruikt, en vra
   <p id="tour-more" class="more" hidden></p>
   <p class="src" id="tour-src"></p>
   <nav>
-    <button type="button" id="tour-prev" data-en="← Previous">← Vorige</button>
-    <button type="button" id="tour-next">Volgende →</button>
-    <button type="button" class="close" id="tour-close" data-en="Close">Sluiten</button>
+    <button type="button" id="tour-prev" data-fr="← Précédent">← Previous</button>
+    <button type="button" id="tour-next">Next →</button>
+    <button type="button" class="close" id="tour-close" data-fr="Fermer">Close</button>
   </nav>
 </section>
 
-<section id="info" class="card" hidden aria-live="polite" aria-label="Over deze plek" data-en-label="About this place">
+<section id="info" class="card" hidden aria-live="polite" aria-label="About this place" data-fr-label="À propos de ce lieu">
   <div class="card-head"><span id="info-kind"></span><span id="info-address"></span></div>
   <h2 id="info-title"></h2>
   <p id="info-meta" class="src" hidden></p>
@@ -470,10 +469,10 @@ Werk stap voor stap, controleer de licenties van de data die je gebruikt, en vra
   <p id="info-text"></p>
   <p id="info-links" class="more links" hidden></p>
   <nav>
-    <button type="button" id="info-prev" aria-label="Vorige" data-en-label="Previous" hidden>←<span class="wide" data-en=" Previous"> Vorige</span></button>
-    <button type="button" id="info-next" data-en="Next →" hidden>Volgende →</button>
-    <button type="button" id="info-stop" hidden><span class="wide" data-en="In the tour">In de rondleiding</span><span class="narrow" data-en="Tour">Rondleiding</span> →</button>
-    <button type="button" class="close" id="info-close" data-en="Close">Sluiten</button>
+    <button type="button" id="info-prev" aria-label="Previous" data-fr-label="Précédent" hidden>←<span class="wide" data-fr=" Précédent"> Previous</span></button>
+    <button type="button" id="info-next" data-fr="Suivant →" hidden>Next →</button>
+    <button type="button" id="info-stop" hidden><span class="wide" data-fr="Dans la visite">In the tour</span><span class="narrow" data-fr="Visite">Tour</span> →</button>
+    <button type="button" class="close" id="info-close" data-fr="Fermer">Close</button>
   </nav>
 </section>
 
@@ -483,36 +482,36 @@ Werk stap voor stap, controleer de licenties van de data die je gebruikt, en vra
   // map.json holds the image size, scale and area, written by render/run.mjs.
   let M = null, viewer = null;
 
-  // Language: Dutch or English, after the browser's language; a link can ask for one (?lang=en). Static text carries its English in data-en (text), data-en-html, data-en-label (aria-label),
-  // data-en-title and data-en-placeholder; text from the data files is looked up by its Dutch in en.json.
+  // Language: English or French, after the browser's language; a link can ask for one (?lang=fr). Static text carries its French in data-fr (text), data-fr-html, data-fr-label (aria-label),
+  // data-fr-title and data-fr-placeholder; text from the data files is looked up by its English in fr.json.
   const askedLang = new URLSearchParams(location.search).get('lang');
-  const LANG = askedLang === 'en' || askedLang === 'nl' ? askedLang
-    : (navigator.languages || [navigator.language]).some((l) => /^nl\b/i.test(l || '')) ? 'nl' : 'en';
-  let EN = {};
-  const T = (text) => (LANG === 'en' && text && EN[text]) || text;
-  const L = (nl, en) => (LANG === 'en' ? en : nl);
+  const LANG = askedLang === 'en' || askedLang === 'fr' ? askedLang
+    : (navigator.languages || [navigator.language]).some((l) => /^fr\b/i.test(l || '')) ? 'fr' : 'en';
+  let FR = {};
+  const T = (text) => (LANG === 'fr' && text && FR[text]) || text;
+  const L = (en, fr) => (LANG === 'fr' ? fr : en);
   const onLang = [];
-  const SWAPS = [['en', 'nl', 'textContent'], ['enHtml', 'nlHtml', 'innerHTML']];
-  const ATTRS = [['enLabel', 'aria-label'], ['enTitle', 'title'], ['enPlaceholder', 'placeholder']];
+  const SWAPS = [['fr', 'en', 'textContent'], ['frHtml', 'enHtml', 'innerHTML']];
+  const ATTRS = [['frLabel', 'aria-label'], ['frTitle', 'title'], ['frPlaceholder', 'placeholder']];
   function applyLang() {
     document.documentElement.lang = LANG;
-    document.title = L('Isometrisch Helenaveen', 'Isometric Helenaveen');
-    for (const [en, nl, prop] of SWAPS) {
-      for (const el of document.querySelectorAll(`[data-${en.replace(/[A-Z]/g, (c) => '-' + c.toLowerCase())}]`)) {
-        if (el.dataset[nl] === undefined) el.dataset[nl] = el[prop];
-        el[prop] = LANG === 'en' ? el.dataset[en] : el.dataset[nl];
+    document.title = L('Isometric Ottawa West', 'Ottawa Ouest isométrique');
+    for (const [fr, en, prop] of SWAPS) {
+      for (const el of document.querySelectorAll(`[data-${fr.replace(/[A-Z]/g, (c) => '-' + c.toLowerCase())}]`)) {
+        if (el.dataset[en] === undefined) el.dataset[en] = el[prop];
+        el[prop] = LANG === 'fr' ? el.dataset[fr] : el.dataset[en];
       }
     }
-    for (const [en, attr] of ATTRS) {
-      for (const el of document.querySelectorAll(`[data-${en.replace(/[A-Z]/g, (c) => '-' + c.toLowerCase())}]`)) {
-        const keep = 'nl' + en.slice(2);
+    for (const [fr, attr] of ATTRS) {
+      for (const el of document.querySelectorAll(`[data-${fr.replace(/[A-Z]/g, (c) => '-' + c.toLowerCase())}]`)) {
+        const keep = 'en' + fr.slice(2);
         if (el.dataset[keep] === undefined) el.dataset[keep] = el.getAttribute(attr) || '';
-        el.setAttribute(attr, LANG === 'en' ? el.dataset[en] : el.dataset[keep]);
+        el.setAttribute(attr, LANG === 'fr' ? el.dataset[fr] : el.dataset[keep]);
       }
     }
     for (const f of onLang) f();
   }
-  fetch('en.json').then((r) => r.json()).then((d) => { EN = d; if (LANG === 'en') applyLang(); }).catch(() => {});
+  fetch('fr.json').then((r) => r.json()).then((d) => { FR = d; if (LANG === 'fr') applyLang(); }).catch(() => {});
   const COS30 = Math.cos(Math.PI / 6);
 
   // The view: the compass direction the camera looks in (map.json "views"; 45 is north-east). A ground point's screen
@@ -550,29 +549,43 @@ Werk stap voor stap, controleer de licenties van de data die je gebruikt, en vra
 
   const rdToLocal = (X, Y) => ({ x: X - M.area.cx, z: M.area.cy - Y });
 
-  // Rijksdriehoeksstelsel to WGS84, the usual polynomial approximation (about a meter off).
-  function rdToWgs(X, Y) {
-    const dX = (X - 155000) * 1e-5, dY = (Y - 463000) * 1e-5;
-    const N = 3235.65389 * dY - 32.58297 * dX ** 2 - 0.2475 * dY ** 2 - 0.84978 * dX ** 2 * dY - 0.0655 * dY ** 3
-      - 0.01709 * dX ** 2 * dY ** 2 - 0.00738 * dX + 0.0053 * dX ** 4 - 0.00039 * dX ** 2 * dY ** 3
-      + 0.00033 * dX ** 4 * dY - 0.00012 * dX * dY;
-    const E = 5260.52916 * dX + 105.94684 * dX * dY + 2.45656 * dX * dY ** 2 - 0.81885 * dX ** 3
-      + 0.05594 * dX * dY ** 3 - 0.05607 * dX ** 3 * dY + 0.01199 * dY - 0.00256 * dX ** 3 * dY ** 2
-      + 0.00128 * dX * dY ** 4 + 0.00022 * dY ** 2 - 0.00022 * dX ** 2 + 0.00026 * dX ** 5;
-    return [52.1551744 + N / 3600, 5.38720621 + E / 3600];
-  }
-  // And back, by stepping toward the GPS point a few times: a meter of RD is near enough a meter on the ground.
-  function wgsToRd(lat, lon) {
-    let X = 155000, Y = 463000;
-    for (let i = 0; i < 6; i++) {
-      const [la, lo] = rdToWgs(X, Y);
-      X += (lon - lo) * 111320 * Math.cos((lat * Math.PI) / 180);
-      Y += (lat - la) * 111200;
-    }
-    return [X, Y];
-  }
+  // The fixed spots of this map, in UTM meters: where it opens (and the home button goes back to, at that zoom and
+  // height above the ground), the middle the birds fly over, and the swimmers off Britannia Beach.
+  const SPOTS = SPOTS_JSON;
 
-  const nl = (n, d) => n.toLocaleString(L('nl-NL', 'en-GB'), { minimumFractionDigits: d, maximumFractionDigits: d });
+  // UTM zone 18N (NAD83(CSRS), EPSG:2959) to latitude and longitude and back: Krueger's series, as scripts/geo.py.
+  const UTM = (() => {
+    const a = 6378137, f = 1 / 298.257222101, k0 = 0.9996, lon0 = (-75 * Math.PI) / 180, fe = 500000;
+    const n = f / (2 - f), A = (a / (1 + n)) * (1 + n * n / 4 + n ** 4 / 64);
+    const al = [n / 2 - (2 * n * n) / 3 + (5 * n ** 3) / 16, (13 * n * n) / 48 - (3 * n ** 3) / 5, (61 * n ** 3) / 240];
+    const be = [n / 2 - (2 * n * n) / 3 + (37 * n ** 3) / 96, (n * n) / 48 + n ** 3 / 15, (17 * n ** 3) / 480];
+    const de = [2 * n - (2 * n * n) / 3 - 2 * n ** 3, (7 * n * n) / 3 - (8 * n ** 3) / 5, (56 * n ** 3) / 15];
+    const e = (2 * Math.sqrt(n)) / (1 + n);
+    return {
+      fwd(lat, lon) {
+        const phi = (lat * Math.PI) / 180, lam = (lon * Math.PI) / 180 - lon0;
+        const t = Math.sinh(Math.atanh(Math.sin(phi)) - e * Math.atanh(e * Math.sin(phi)));
+        const xi = Math.atan2(t, Math.cos(lam)), eta = Math.atanh(Math.sin(lam) / Math.sqrt(1 + t * t));
+        let x = eta, y = xi;
+        al.forEach((c, j) => { x += c * Math.cos(2 * (j + 1) * xi) * Math.sinh(2 * (j + 1) * eta); y += c * Math.sin(2 * (j + 1) * xi) * Math.cosh(2 * (j + 1) * eta); });
+        return [fe + k0 * A * x, k0 * A * y];
+      },
+      inv(X, Y) {
+        const xi = Y / (k0 * A), eta = (X - fe) / (k0 * A);
+        let xi2 = xi, eta2 = eta;
+        be.forEach((c, j) => { xi2 -= c * Math.sin(2 * (j + 1) * xi) * Math.cosh(2 * (j + 1) * eta); eta2 -= c * Math.cos(2 * (j + 1) * xi) * Math.sinh(2 * (j + 1) * eta); });
+        const chi = Math.asin(Math.sin(xi2) / Math.cosh(eta2));
+        let phi = chi;
+        de.forEach((c, j) => { phi += c * Math.sin(2 * (j + 1) * chi); });
+        return [(phi * 180) / Math.PI, ((lon0 + Math.atan2(Math.sinh(eta2), Math.cos(xi2))) * 180) / Math.PI];
+      },
+    };
+  })();
+  // The scripts came from a Dutch map in RD coordinates; the map's coordinates keep those names here.
+  const rdToWgs = (X, Y) => UTM.inv(X, Y);
+  const wgsToRd = (lat, lon) => UTM.fwd(lat, lon);
+
+  const nl = (n, d) => n.toLocaleString(L('en-CA', 'fr-CA'), { minimumFractionDigits: d, maximumFractionDigits: d });
   const coords = document.getElementById('coords');
   const scaleEl = document.getElementById('scale');
 
@@ -582,7 +595,7 @@ Werk stap voor stap, controleer de licenties van de data die je gebruikt, en vra
     if (Math.abs(g.x) > hx || Math.abs(g.z) > hz) return;
     const X = M.area.cx + g.x, Y = M.area.cy - g.z;
     const [lat, lon] = rdToWgs(X, Y);
-    coords.innerHTML = `<b>GPS</b> ${nl(lat, 4)}° N · ${nl(lon, 4)}° ${L('O', 'E')}`;
+    coords.innerHTML = `<b>GPS</b> ${nl(lat, 4)}° N · ${nl(-lon, 4)}° ${L('W', 'O')}`;
   }
 
   function updateZoom() {
@@ -594,12 +607,12 @@ Werk stap voor stap, controleer de licenties van de data die je gebruikt, en vra
     scaleEl.textContent = `1 pixel = ${nl(100 / M.scale, 0)} cm · zoom ${ratio}`;
   }
 
-  // The view the map opens on and the home button goes back to: the village school in the middle, at 1:1.3. The point
-  // is the middle of the school building, 3 m up, so it sits in the middle whichever way the map is turned.
+  // The view the map opens on and the home button goes back to (SPOTS.home). The point is a few metres up, so it
+  // sits in the middle whichever way the map is turned.
   function goHome(now) {
-    const vp = viewer.viewport, { x, z } = rdToLocal(191904, 377867);
-    vp.zoomTo(vp.imageToViewportZoom(1 / 1.3), null, now);
-    vp.panTo(vp.imageToViewportCoordinates(groundToImage(x, z, 3)), now);
+    const vp = viewer.viewport, { x, z } = rdToLocal(...SPOTS.home);
+    vp.zoomTo(vp.imageToViewportZoom(SPOTS.homeZoom), null, now);
+    vp.panTo(vp.imageToViewportCoordinates(groundToImage(x, z, SPOTS.homeHeight)), now);
   }
 
   // A pin: a click on the map, not on a place, puts a pin there and writes it into the address with the zoom and,
@@ -700,7 +713,7 @@ Werk stap voor stap, controleer de licenties van de data die je gebruikt, en vra
       id: 'map',
       // The map, and over it once more its buildings and trees on a transparent layer (map.json "objects"), so that
       // cars and walkers behind them can be drawn in between.
-      tileSources: [first.tiles || 'helenaveen_files/', ...(first.objects ? [first.objects] : [])].map(dzi),
+      tileSources: [first.tiles || 'ottawa_files/', ...(first.objects ? [first.objects] : [])].map(dzi),
       silenceMultiImageWarnings: true,
       showNavigationControl: false,
       showNavigator: true,
@@ -892,7 +905,7 @@ Werk stap voor stap, controleer de licenties van de data die je gebruikt, en vra
     if (series && e.key === 'ArrowLeft') openSeries(series.cat, series.pos - 1);
   });
 
-  // Helenaveen van toen (history.json, built by scripts/build_history.py): numbered stops and a guided tour.
+  // Britannia back then (history.json, built by scripts/build_history.py): numbered stops and a guided tour.
   let stops = [], stopEls = [], current = -1;
   const tourBtn = document.getElementById('tour-toggle');
   const tourEl = document.getElementById('tour');
@@ -938,7 +951,7 @@ Werk stap voor stap, controleer de licenties van de data die je gebruikt, en vra
   }
 
   // The text of the current stop, again after a language switch.
-  const READ_MORE = () => L('Lees het verhaal op Het Helenaveen van toen →', 'Read the story on Het Helenaveen van toen (in Dutch) →');
+  const READ_MORE = () => L('Read more →', 'En savoir plus (en anglais) →');
   function renderStop() {
     const s = stops[current];
     document.getElementById('tour-year').textContent = T(s.year);
@@ -949,9 +962,9 @@ Werk stap voor stap, controleer de licenties van de data die je gebruikt, en vra
     const more = document.getElementById('tour-more');
     more.hidden = !s.more;
     if (s.more) more.innerHTML = `<a href="${s.more}" target="_blank" rel="noopener">${READ_MORE()}</a>`;
-    document.getElementById('tour-src').innerHTML = `${L('Bron', 'Source')}: <a href="${s.source.url}" target="_blank" rel="noopener">${s.source.label}</a>`;
+    document.getElementById('tour-src').innerHTML = `${L('Source', 'Source')}: <a href="${s.source.url}" target="_blank" rel="noopener">${s.source.label}</a>`;
     document.getElementById('tour-prev').disabled = current === 0;
-    document.getElementById('tour-next').textContent = current === stops.length - 1 ? L('Opnieuw', 'Start again') : L('Volgende →', 'Next →');
+    document.getElementById('tour-next').textContent = current === stops.length - 1 ? L('Start again', 'Recommencer') : L('Next →', 'Suivant →');
   }
 
   // Photos of the current stop: click the photo or a dot for the next one.
@@ -971,7 +984,7 @@ Werk stap voor stap, controleer de licenties van de data die je gebruikt, en vra
     photos.forEach((_, i) => {
       const b = document.createElement('button');
       b.type = 'button';
-      b.setAttribute('aria-label', L(`Foto ${i + 1} van ${photos.length}`, `Photo ${i + 1} of ${photos.length}`));
+      b.setAttribute('aria-label', L(`Photo ${i + 1} of ${photos.length}`, `Photo ${i + 1} sur ${photos.length}`));
       b.setAttribute('aria-current', String(i === photoIdx));
       b.addEventListener('click', () => showPhoto(i));
       dots.appendChild(b);
@@ -1051,7 +1064,7 @@ Werk stap voor stap, controleer de licenties van de data die je gebruikt, en vra
       const el = document.createElement('div');
       el.className = 'knooppunt';
       el.textContent = n.ref;
-      el.title = `${L('Knooppunt', 'Junction')} ${n.ref}`;
+      el.title = `${L('Junction', 'Carrefour')} ${n.ref}`;
       anchor(el, n.at[0], n.at[1], 0);
     }
   }
@@ -1136,7 +1149,7 @@ Werk stap voor stap, controleer de licenties van de data die je gebruikt, en vra
     e.preventDefault();
     const p = findPlace(goto.value);
     if (p) goPlace(p);
-    else found.textContent = L(`Geen adres of plek gevonden voor "${goto.value}".`, `No address or place found for "${goto.value}".`);
+    else found.textContent = L(`No address or place found for "${goto.value}".`, `Aucune adresse ni aucun lieu trouvé pour « ${goto.value} ».`);
   });
   goto.addEventListener('change', () => {
     const p = places.find((q) => q.name === goto.value);
@@ -1412,7 +1425,7 @@ Werk stap voor stap, controleer de licenties van de data die je gebruikt, en vra
     const geese = Math.random() < 0.6;
     const ang = geese ? Math.atan2(1, -1) + (Math.random() - 0.5) * 1.2 : Math.random() * Math.PI * 2;
     const dx = Math.cos(ang), dz = Math.sin(ang);
-    const village = rdToLocal(191900, 378000);
+    const village = rdToLocal(...SPOTS.centre);
     const near = Math.random() < 0.5;
     const tx = near ? village.x + (Math.random() - 0.5) * 900 : (Math.random() * 2 - 1) * M.area.hx * 0.8;
     const tz = near ? village.z + (Math.random() - 0.5) * 900 : (Math.random() * 2 - 1) * M.area.hz * 0.8;
@@ -1567,11 +1580,11 @@ Werk stap voor stap, controleer de licenties van de data die je gebruikt, en vra
     }
   }
 
-  // The dippers: six people in a circle in the Helenavaart in front of In d'Ouwe Peel, in up to their shoulders, a few
+  // The swimmers: six people in a circle in the water off Britannia Beach, in up to their shoulders, a few
   // in a woolly hat, bobbing a little while the circle slowly turns.
   let dippers = null;
   function makeDippers() {
-    const c = rdToLocal(192072.2, 377911.4);
+    const c = rdToLocal(...SPOTS.swimmers);
     const people = Array.from({ length: 6 }, (_, i) => ({
       a: (i / 6) * Math.PI * 2, phase: Math.random() * 7, skin: tone(SKIN),
       top: Math.random() < 0.5 ? tone(SKIN) : tone(JACKETS), hat: Math.random() < 0.6 ? tone(JACKETS) : tone(HEADS),
@@ -1698,13 +1711,13 @@ Werk stap voor stap, controleer de licenties van de data die je gebruikt, en vra
     return c;
   }
   const LAMP = glowSprite('255,186,105'), BEAM = glowSprite('255,242,210'), REAR = glowSprite('255,48,32');
-  // A street lamp every 34 m on one side of each village street: every residential street, and the bigger roads
-  // within 650 m of the church.
+  // A street lamp every 34 m on one side of every street: residential streets, the bigger roads and the longer
+  // service roads.
   function makeLamps() {
-    const village = rdToLocal(191900, 378000), done = new Set(), out = [];
+    const done = new Set(), out = [];
     for (const l of lanes) {
-      const anywhere = l.c === 'residential' || l.c === 'living_street';
-      if (done.has(l.e) || !(anywhere || l.c === 'tertiary' || l.c === 'unclassified')) continue;
+      if (done.has(l.e) || !['residential', 'living_street', 'tertiary', 'unclassified', 'secondary', 'primary', 'service'].includes(l.c)) continue;
+      if (l.c === 'service' && l.len < 60) continue;
       done.add(l.e);
       const side = (l.wo || 1) + 1.6;
       let i = 0;
@@ -1713,7 +1726,7 @@ Werk stap voor stap, controleer de licenties van de data die je gebruikt, en vra
         const a = l.p[i], b = l.p[i + 1], seg = l.cum[i + 1] - l.cum[i] || 1, t = (s - l.cum[i]) / seg;
         const dx = (b[0] - a[0]) / seg, dz = (b[1] - a[1]) / seg;
         const x = a[0] + (b[0] - a[0]) * t - dz * side, z = a[1] + (b[1] - a[1]) * t + dx * side;
-        if (anywhere || Math.hypot(x - village.x, z - village.z) < 650) out.push([x, z]);
+        out.push([x, z]);
       }
     }
     return out;
@@ -2007,15 +2020,15 @@ Werk stap voor stap, controleer de licenties van de data die je gebruikt, en vra
   makeCopy.addEventListener('click', async () => {
     try {
       await navigator.clipboard.writeText(document.getElementById('make-prompt').textContent);
-      makeCopy.textContent = L('Gekopieerd', 'Copied');
+      makeCopy.textContent = L('Copied', 'Copié');
     } catch {
       getSelection().selectAllChildren(document.getElementById('make-prompt'));
-      makeCopy.textContent = L('Geselecteerd, kopieer met Ctrl+C', 'Selected, copy with Ctrl+C');
+      makeCopy.textContent = L('Selected, copy with Ctrl+C', 'Sélectionné, copiez avec Ctrl+C');
     }
-    setTimeout(() => (makeCopy.textContent = L('Kopieer de opdracht', 'Copy the prompt')), 2500);
+    setTimeout(() => (makeCopy.textContent = L('Copy the prompt', 'Copier la consigne')), 2500);
   });
 
-  // What is redrawn once the English arrives (en.json comes in after the page).
+  // What is redrawn once the French arrives (fr.json comes in after the page).
   onLang.push(() => {
     for (const c of categories) if (c.btn) c.btn.textContent = T(c.label);
     stopEls.forEach((el, i) => (el.title = `${T(stops[i].year)}: ${T(stops[i].title)}`));

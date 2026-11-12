@@ -4,9 +4,9 @@
 # ///
 """Traffic for the viewer: lanes along the OpenStreetMap roads and paths that little cars, cyclists and walkers use.
 
-A lane runs one way along a stretch of road between two junctions, on the right-hand side: the BGT carriageways and
+A lane runs one way along a stretch of road between two junctions, on the right-hand side: the carriageways and
 cycle paths show how wide the road really is and where it lies, since the OpenStreetMap line is seldom exactly in
-the middle. Cars keep to the middle of their half, cyclists to its edge, walkers to the pavement when the BGT has one
+the middle. Cars keep to the middle of their half, cyclists to its edge, walkers to the sidewalk when OpenStreetMap has one
 next to the road, and to the edge of the road when it doesn't. Where a building or a tree
 crown stands in front of the road on screen, the lane records a hidden stretch, so a car disappears behind it instead
 of being drawn on the roof; under a tree crown it shows faintly, as if seen through the leaves. Roads that leave the map end in an exit: a car that drives out comes back in at another
@@ -30,7 +30,7 @@ from collections import Counter
 import numpy as np
 from PIL import Image, ImageDraw
 from shapely import affinity, contains_xy, prepare
-from shapely.geometry import LineString, Point, box, shape
+from shapely.geometry import LineString, Point, Polygon, box
 from shapely.ops import unary_union
 
 from config import BUILD, CX, CY, RAW, VIEWS, XMAX, XMIN, YMAX, YMIN
@@ -156,13 +156,13 @@ def clip(edges):
 
 
 def surfaces():
-    """The BGT carriageways and cycle paths in local meters, to measure where each road lies and how wide it is."""
+    """The carriageways, cycle paths and sidewalks in local meters (scripts/build_surfaces.py), to measure where each
+    road lies and how wide it is."""
     groups = {"road": [], "cycle": [], "foot": []}
-    for f in json.loads((RAW / "bgt_wegdeel.geojson").read_text())["features"]:
-        fn = f["properties"].get("functie") or ""
-        key = "road" if fn.startswith("rijbaan") else "cycle" if fn == "fietspad" else "foot" if fn == "voetpad" else None
-        if key and f["geometry"]:
-            groups[key].append(affinity.affine_transform(shape(f["geometry"]), [1, 0, 0, -1, -CX, CY]).buffer(0))
+    for p in json.loads((BUILD / "surfaces.json").read_text())["polygons"]:
+        key = p.get("group")
+        if key in groups:
+            groups[key].append(affinity.affine_transform(Polygon(p["rings"][0], p["rings"][1:]), [1, 0, 0, -1, -CX, CY]).buffer(0))
     out = {k: unary_union(v) for k, v in groups.items()}
     for g in out.values():
         prepare(g)
@@ -276,7 +276,7 @@ def lanes(edges):
                 lane = {"e": i, "a": a, "b": b, "p": p, **{k: e[k] for k in ("c", "v", "w", "d", "wb", "db", "ww", "dw")}}
                 lane["bo"], lane["wo"] = round(bike - off, 2), round(walk - off, 2)
                 out.append(lane)
-    lanes.measured = f"{measured} of {len(edges)} stretches of road measured on the BGT"
+    lanes.measured = f"{measured} of {len(edges)} stretches of road measured on their surfaces"
     return out
 
 

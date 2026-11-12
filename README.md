@@ -1,30 +1,54 @@
-# Isometric Helenaveen
+# Isometric Ottawa West
 
-Hi, I'm [@jankeesvw](https://x.com/intent/follow?screen_name=jankeesvw) on X. I rebuilt my village Helenaveen in isometric pixel art, with Claude Code and nothing but open data. See it live at [jankeesvw.github.io/isometric-helenaveen](https://jankeesvw.github.io/isometric-helenaveen/).
-
-A zoomable isometric pixel-art map of Helenaveen, 3.5 × 5.5 km from the A67 north along the Soemeersingel to the Willem III-hoeve, in the spirit of [isometric.nyc](https://cannoneyed.com/projects/isometric-nyc). Where that project painted every tile with a fine-tuned image model, this one is rendered procedurally from Dutch open data, so it is exact, seamless and rebuilds in about two minutes.
+A zoomable isometric pixel-art map of Ottawa's west end: 4.5 × 3.5 km from Bayshore to Woodroffe Avenue and from
+the Queensway north to Britannia Bay, with Britannia, Mud Lake, Britannia Heights and Queensway Terrace North. It is
+a fork of [Isometric Helenaveen](https://github.com/jankeesvw/isometric-helenaveen) by
+[@jankeesvw](https://x.com/jankeesvw), with the Dutch open data swapped for Canadian open data. Rendered procedurally,
+so it is exact, seamless and rebuilds from scratch.
 
 ## Pipeline
 
 Run `./build.sh` for everything. The steps:
 
-1. `scripts/fetch.py` downloads the raw data into `data/raw/`: 3D BAG buildings (LoD2.2 with roof shapes), BGT surfaces (roads, water, plots, vegetation), the PDOK aerial photo at 25 cm and AHN surface and terrain heights at 50 cm.
-2. `scripts/landmarks.py` names the places people look for: both churches, the parsonage and Sunday school of 1867, school De Peelparel, monuments, the sports park. It gives them their real colors (from Rijksmonumenten photos) and adds what 3D BAG smooths away, like the 26 m tower of the Sint-Willibrorduskerk and the roof turret of the Protestant church, both measured in AHN. `scripts/build_buildings.py` triangulates the 3D BAG solids and lays the aerial photo on every roof (`scripts/roof_atlas.py`): the photo is lined up with each footprint by matching edges (it is off by 1.2 m on average), each roof face is evened out so the photo's sun and shade don't double up with the renderer's lighting, and the result is reduced to a few flat colors so solar panels, skylights and chimneys show as clean shapes. 3D BAG cannot reconstruct greenhouses (lidar goes through glass), so those are extruded from their footprint with a gutter height based on the year of construction. Water tanks, feed silos and sheds come from the BGT.
-3. `scripts/build_trees.py` finds individual trees in the canopy height model (AHN surface minus terrain): local maxima for the tops, watershed segmentation for crown size, and the spring aerial photo to tell evergreens from deciduous trees. Municipal street trees from the BGT fill in what the lidar missed.
-4. `scripts/build_ground.py` paints the BGT polygons, plus football and tennis lines, the riding arenas and both graveyards from OpenStreetMap, in a fixed palette with patterns (furrows along each field's long axis, paving grids, ripples, a dark far bank on every ditch) and bakes hard sun shadows of the buildings and tree crowns into it.
-5. `render/scene.js` is a three.js scene with a 2:1 isometric orthographic camera. Window grids, brick plinths, metal cladding and greenhouse glass are drawn in the building shader, a post pass smooths the image with a Kuwahara filter (a painterly look without grain) and inks every depth step as an outline. Tree crowns are cel-shaded with three tones. `render/run.mjs` renders it in headless Chromium on the GPU (Vulkan), tile by tile with a view offset, so tiles line up exactly.
-6. `vips dzsave` cuts the stitched image into a Deep Zoom pyramid of WebP tiles, and `viewer/index.html` shows it with OpenSeadragon: tilt-shift blur, GPS coordinates under the cursor, a search box over every place and address (`scripts/build_places.py`), named buildings and places that light up on hover and open a card with their story, photo and links when clicked, grouped into series (Koningshoeven, Historische gebouwen, Oorlog en herdenking, Kunst, Verdwenen, Bedrijven) to step through like the tour (`scripts/landmarks.py`, `scripts/build_hotspots.py`; a link ending in `#koningshoeven` opens a series), a guided tour "Helenaveen van toen" along twenty historical places with photos from the Rijksdienst voor het Cultureel Erfgoed, each linking to its story on [Het Helenaveen van toen](https://www.helenaveenvantoen.nl/) (`scripts/build_history.py`; a link ending in `#van-toen` starts it), and a toggle for the walking routes and numbered junctions of the wandelknooppuntennetwerk and LAW 13 from OpenStreetMap (`scripts/build_routes.py`). Little cars, vans, trucks and cyclists drive the OpenStreetMap roads and cycle paths on the right-hand side, keeping their distance and passing behind buildings and under tree crowns: the renderer also writes a mask of everything that stands more than 30 cm above the ground (`--pass objects`), `site.sh` turns the map under that mask into a second, transparent tile layer, and the viewer draws whatever is behind something between the two layers, and now and then geese cross high up in a V (`scripts/build_traffic.py`). A link ending in `#Sint-Willibrorduskerk` or `#De-Peelparel` opens on that place. A compass button turns the map a quarter: the map is rendered from all four diagonal directions (`VIEWS` in `scripts/config.py`, `render/run.mjs --look`), and the viewer turns a still of the old view about the middle of the screen like a turntable while the new view turns in after it, keeping the spot in the middle in place; halfway through the turn the pixels grow coarse and fine again, like an old game console. The map opens on the village school, and the home button goes back there. A music button plays [My Street](https://opengameart.org/content/my-street) by congusbongus (CC0, from OpenGameArt) on a loop; it is off until a visitor turns it on, and the browser remembers that for next time. A moon button turns the map to evening (`viewer/og.png`, the picture for link previews, shows that evening): an SVG colour matrix (`#dusk`) puts the map, its traffic and the minimap in moonlight, and a canvas above it lights a lamp every 34 m along the village streets and the headlights and rear lights of every car and bike; it is remembered the same way. A click on the map, not on a place, drops a pin and writes it into the address with the zoom and direction (`?pin=51.38884,5.91741&zoom=1.23&view=135`), so that link opens on the same spot. Six people take a cold dip in a circle in the Helenavaart in front of In d'Ouwe Peel. The viewer speaks Dutch and English, after the browser's language (`?lang=en` or `?lang=nl` asks for one); static text carries its English in `data-en*` attributes, and the stories, kinds and photo credits from the data files are looked up by their Dutch in `viewer/en.json`. A button in the corner opens the prompt to make a map like this of another village, in either language, which tells the agent which Dutch data sources to swap for the open data of another country.
+1. `scripts/fetch.py` downloads the raw data into `data/raw/`, on the map's grid in NAD83(CSRS) / UTM zone 18N
+   (EPSG:2959; `scripts/config.py` holds the area, `scripts/geo.py` converts to and from latitude and longitude):
+   - **elevation**: NRCan's HRDEM lidar mosaic, surface (DSM) and bare earth (DTM) at 1 m, found through the
+     CanElevation STAC catalogue and read as cloud-optimized GeoTIFFs from AWS;
+   - **aerial photo**: Ontario's DRAPE 2024 orthophoto (16 cm, spring 2024), read tile by tile from Data for
+     Canada's PMTiles copy on Source Cooperative and reprojected to 25 cm UTM chunks;
+   - **OpenStreetMap** through Overpass: buildings, land use, water (the Ottawa River multipolygon whole), roads and
+     paths, addresses, points of interest and trails.
 
-`./site.sh` cuts the rendered image into tiles and assembles `site/` without rendering anything; each run writes its tiles to a fresh `tiles-<stamp>/` folder so browsers never mix cached tiles of two versions. `./deploy.sh` publishes `site/` to the `gh-pages` branch as a single fresh commit, so the tiles never pile up in the history of `main`.
+   It remembers the area it downloaded and starts over when `config.py` moves it. Run it where those servers are
+   reachable; it needs only `uv` (`uv run scripts/fetch.py`).
+2. `scripts/build_surfaces.py` turns OpenStreetMap into what the Dutch BGT gave for free: a wall-to-wall ground of
+   polygons with a style each (lawn or paving under everything, then land use, water, and the roads and paths
+   buffered from their centre lines to their width), plus the building footprints and single mapped trees.
+3. `scripts/landmarks.py` finds the places with a story by their OpenStreetMap name (`scripts/osm_places.py`):
+   Britannia Beach and pier, the Yacht Club, Mud Lake, the purification plant, the Olde Forge, the churches, Frank
+   Ryan Park, Elmhurst Woods, IKEA and two Bridgeheads, each with a short story in English and French.
+4. `scripts/build_buildings.py` builds every OpenStreetMap footprint from the lidar: `scripts/roof_fit.py` samples
+   the DSM inside it and fits a flat, gable or hip roof over its oriented bounding box (a roof is the lowest of a few
+   planes, so it works for any footprint shape, and walls rise to the roof above them, gable ends included). Houses
+   newer than the lidar get their height from OpenStreetMap or a default. The aerial photo is laid on the roofs as in
+   the original (`scripts/roof_atlas.py`).
+5. `scripts/build_trees.py` finds trees in the canopy height model (DSM minus DTM, `scripts/dem.py`) and adds the
+   single trees mapped in OpenStreetMap.
+6. `scripts/build_ground.py` paints the ground in 500 m bands, so it fits in a few GB of memory, with baked shadows.
+7. `render/scene.js` and `render/run.mjs` render it in headless Chromium, as in the original, with a palette of
+   Ottawa houses (postwar brick and siding). Without a GPU, `RENDER_GL=swiftshader` renders on the CPU, and `CHROME`
+   points at a Chrome to use.
+8. `site.sh` cuts the Deep Zoom tiles and `viewer/index.html` shows them. The viewer speaks English and French
+   (`?lang=fr`, or the browser's language); the French of the stories is in `data/build/fr.json`, written by
+   `scripts/build_history.py`, which also builds the tour **Britannia back then** (1818 to the floods of 2017).
+   Swimmers bob off Britannia Beach, street lamps line every street in the evening, and geese fly over.
+9. `deploy.sh` publishes `site/` to GitHub Pages.
 
-The camera looks north-east and the sun comes from the west-south-west (`scripts/sun.py`, mirrored in `render/scene.js`).
-
-Overlays (search, hover outlines, walking routes, the tour, traffic) are JSON files next to the tiles: changing them needs no rendering, only the small build script and `./deploy.sh`.
-
-## Iterating
-
-`node render/run.mjs crop <x> <y> <w> <h> --scale 4 --out out/crop.png` renders one region of the full image in a second, which is the fastest way to try a shader or palette change. `node render/run.mjs crop 0 0 2546 1303 --scale 0.6` gives an overview of the whole map.
+The spots the viewer opens on, the middle the birds fly over and the swimmers' place are `SPOTS` in
+`viewer/index.html`.
 
 ## Data
 
-3D BAG (TU Delft, 3DGI, CC BY 4.0), BGT (CC0), AHN (CC0), BAG addresses and the aerial photo (Beeldmateriaal Nederland, CC BY 4.0), all via [PDOK](https://www.pdok.nl). Points of interest, pitches and graveyards from OpenStreetMap (ODbL). Building descriptions from Monumenten in Nederland: Noord-Brabant (1997).
+HRDEM (Natural Resources Canada, Open Government Licence – Canada), DRAPE 2024 (Geospatial Ontario, Open Government
+Licence – Ontario), OpenStreetMap (© OpenStreetMap contributors, ODbL). See [DATA.md](DATA.md) for the details and
+for what was considered and left out.

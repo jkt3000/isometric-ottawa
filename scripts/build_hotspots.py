@@ -73,8 +73,8 @@ def main():
     print(f"{len(out)} hotspots, {sum('text' in s or 'stop' in s for s in out)} with a story, {len(cats)} categories")
 
 
-def walk(idx, spots, start=(191850, 377850)):
-    """Order a category as a walk: the place nearest the village first, then each time the nearest next one."""
+def walk(idx, spots, start=(CX, CY)):
+    """Order a category as a walk: the place nearest the middle of the map first, then each time the nearest next one."""
     pos = lambda i: (spots[i]["x"], spots[i]["y"])
     dist = lambda a, b: math.hypot(a[0] - b[0], a[1] - b[1])
     path, todo, here = [], idx[:], start

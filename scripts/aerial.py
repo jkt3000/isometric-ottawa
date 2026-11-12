@@ -9,7 +9,7 @@ from config import BUILD, CHUNK, GROUND_RES, NX, NY, RAW, XMIN, YMAX
 def load_aerial():
     cache = BUILD / "aerial.npy"
     if cache.exists():
-        return np.load(cache)
+        return np.load(cache, mmap_mode="r")  # 750 MB for the whole map: read from disk as needed
     px = int(CHUNK / GROUND_RES)
     out = np.zeros((NY * px, NX * px, 3), dtype=np.uint8)
     for ix in range(NX):
@@ -19,7 +19,8 @@ def load_aerial():
             out[row : row + px, ix * px : ix * px + px] = img
     BUILD.mkdir(parents=True, exist_ok=True)
     np.save(cache, out)
-    return out
+    del out
+    return np.load(cache, mmap_mode="r")
 
 
 def world_to_px(xy):

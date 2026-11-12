@@ -1,4 +1,8 @@
-"""Shared settings: the area we render, in RD New (EPSG:28992) meters."""
+"""Shared settings: the area we render, in NAD83(CSRS) / UTM zone 18N (EPSG:2959) meters.
+
+Ottawa lies in UTM zone 18 (78 to 72 degrees west). The City of Ottawa itself publishes in MTM zone 9, but UTM is what
+the national elevation model (HRDEM) and most Canadian open data use, and it keeps distortion under 0.04 % here.
+"""
 
 import json
 from pathlib import Path
@@ -7,8 +11,11 @@ ROOT = Path(__file__).resolve().parent.parent
 RAW = ROOT / "data" / "raw"
 BUILD = ROOT / "data" / "build"
 
-# Helenaveen with the Soemeersingel north to the Willem III-hoeve: 3.5 x 5.5 km.
-XMIN, YMIN, XMAX, YMAX = 189850, 376350, 193350, 381850
+EPSG = 2959  # NAD83(CSRS) / UTM zone 18N
+
+# Britannia Heights and Queensway Terrace North in Ottawa's west end, from the Queensway north to the Ottawa River at
+# Britannia Bay and Mud Lake, and from Bayshore east to Woodroffe Avenue and Fairlawn Plaza: 4.5 x 3.5 km.
+XMIN, YMIN, XMAX, YMAX = 436100, 5021550, 440600, 5025050
 CX, CY = (XMIN + XMAX) / 2, (YMIN + YMAX) / 2
 
 # Downloads and ground textures come in square chunks of this many meters.

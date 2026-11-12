@@ -1,8 +1,9 @@
 # /// script
 # requires-python = ">=3.11"
-# dependencies = ["numpy", "mapbox-earcut", "pillow", "scipy"]
+# dependencies = ["numpy", "mapbox-earcut", "pillow", "scipy", "shapely", "tifffile", "imagecodecs"]
 # ///
-"""Turn 3D BAG LoD2.2 solids into one triangle soup for the renderer.
+"""Turn OpenStreetMap footprints and the HRDEM lidar into one triangle soup for the renderer (scripts/roof_fit.py fits
+the roofs, in place of the 3D BAG's LoD2.2 solids that the Dutch map used).
 
 Output (data/build/):
   buildings.bin   float32 per vertex: x, y, z, nx, ny, nz, u, v, kind, building index, atlas u, atlas v (-1: none)
@@ -15,17 +16,20 @@ Local coordinates: x east, y up, z south, origin at the area center, y=0 at the 
 
 import hashlib
 import json
-from collections import defaultdict
+import re
+from collections import Counter, defaultdict
 
 import mapbox_earcut as earcut
 import numpy as np
 from PIL import Image, ImageDraw
+from shapely.geometry import Polygon
 
+import dem
 import roof_atlas
+import roof_fit
 from aerial import load_aerial, world_to_px
-from config import BUILD, CX, CY, RAW, XMAX, XMIN, YMAX, YMIN, write_area
+from config import BUILD, CX, CY, write_area
 
-KIND = {"GroundSurface": 0, "WallSurface": 1, "RoofSurface": 2}
 COLS = 12
 
 # Roof vertex blocks and footprints per building index, for texturing roofs from the aerial photo afterwards.
@@ -33,15 +37,46 @@ ROOF_BLOCKS = defaultdict(list)
 FOOTPRINT = {}
 ATLAS_KINDS = {"house", "barn", "shed", "church", "school", "tank", "silo", "canopy"}
 
-# BGT structures that are often missing from the BAG: (height, type).
-EXTRAS = {
-    "opslagtank": (4.5, "tank"),
-    "voedersilo": (11.0, "silo"),
-    "schuur": (2.6, "shed"),
-    "open loods": (5.0, "shed"),
-    "overkapping": (3.0, "canopy"),
-    "lage trafo": (2.2, "shed"),
+# OpenStreetMap building=* values, grouped into the kinds render/scene.js draws.
+KINDS = {
+    "church": "church", "chapel": "church", "cathedral": "church", "religious": "church", "temple": "church",
+    "school": "school", "kindergarten": "school", "college": "school", "university": "school",
+    "garage": "shed", "garages": "shed", "shed": "shed", "hut": "shed", "cabin": "shed", "boathouse": "shed",
+    "kiosk": "shed", "toilets": "shed", "service": "shed", "transformer_tower": "shed",
+    "carport": "canopy", "roof": "canopy", "grandstand": "canopy",
+    "greenhouse": "greenhouse", "storage_tank": "tank", "silo": "silo",
+    "warehouse": "barn", "industrial": "barn", "barn": "barn", "farm_auxiliary": "barn", "hangar": "barn",
 }
+COMMERCIAL = {"commercial", "retail", "supermarket", "industrial", "warehouse", "office", "yes", "civic", "public"}
+# Heights for buildings the 2020 lidar doesn't show, when OpenStreetMap has no height or storeys either.
+DEFAULT_HEIGHT = {"house": 7.0, "shed": 2.8, "canopy": 3.0, "barn": 6.0, "school": 8.0, "church": 10.0, "greenhouse": 4.0,
+                  "tank": 5.0, "silo": 12.0}
+
+
+def building_kind(tags):
+    if tags.get("man_made") in ("storage_tank", "silo"):
+        return "tank" if tags["man_made"] == "storage_tank" else "silo"
+    return KINDS.get(tags.get("building", "yes"), "house")
+
+
+def number(s):
+    m = re.match(r"\s*([0-9.]+)", str(s or ""))
+    return float(m.group(1)) if m else None
+
+
+def tagged_height(tags, kind):
+    h = number(tags.get("height"))
+    if h:
+        return h
+    levels = number(tags.get("building:levels"))
+    if levels:
+        return levels * 3.0 + 0.5
+    return DEFAULT_HEIGHT.get(kind, 7.0)
+
+
+def year_of(tags):
+    m = re.search(r"\b(1[6-9]\d\d|20\d\d)\b", tags.get("start_date", "") or tags.get("building:year", ""))
+    return int(m.group(1)) if m else None
 
 
 def ring_area(xy):
@@ -188,7 +223,7 @@ def part(meta, pid, kind, axis, height, wall, roof, param=0.0):
 
 
 def add_landmark_parts(verts, meta, pid, lm, ground, axis, roof_tris):
-    """Towers, roof turrets and crosses that 3D BAG smooths away."""
+    """Towers, roof turrets and crosses that the lidar roof fit smooths away."""
     wall, roof = lm.get("wall", (150, 80, 62)), lm.get("roof", (70, 72, 80))
     if "tower" in lm:
         t = lm["tower"]
@@ -225,11 +260,6 @@ def add_masts(verts, meta, masts):
         emit(verts, frustum(bot, top, 0.0, m["height"]), bi, 0.0, center_u=True)
 
 
-def greenhouse_height(year):
-    # Older Venlo greenhouses are lower; modern ones have a 5-6 m gutter.
-    return 3.6 if (year or 0) < 1985 else 5.2
-
-
 def main():
     write_area()
     aerial = load_aerial()
@@ -238,79 +268,62 @@ def main():
     verts = []
     meta = []
     footprints = []
-    for line in open(RAW / "3dbag.jsonl"):
-        feat = json.loads(line)
-        t = feat["transform"]
-        V = np.array(feat["vertices"], dtype=np.float64) * t["scale"] + t["translate"]
-        parent_id = feat["id"]
-        parent = feat["CityObjects"][parent_id]
-        attrs = parent["attributes"]
-        if attrs.get("status") not in ("Pand in gebruik", "Pand in gebruik (niet ingemeten)", "Verbouwing pand"):
+    dsm, dtm = dem.load("dsm"), dem.load("dtm")
+    surf = json.loads((BUILD / "surfaces.json").read_text())
+    models = Counter()
+    for b in surf["buildings"]:
+        tags = b["tags"]
+        if "building:part" in tags and "building" not in tags:
+            continue  # parts would stack on their building
+        poly = Polygon(b["rings"][0], b["rings"][1:]).buffer(0)
+        if poly.geom_type != "Polygon" or poly.area < 6:
             continue
-        ground = attrs.get("b3_h_maaiveld") or 0.0
-        lod0 = parent["geometry"][0]["boundaries"][0][0]
-        fp = V[lod0][:, :2]
+        kind = building_kind(tags)
+        roof = roof_fit.fit(poly, dsm, dtm, fallback_height=tagged_height(tags, kind))
+        if roof is None:
+            continue
+        if kind == "canopy":
+            roof.update(model="flat", planes=[(0.0, 0.0, roof["ground"] + min(roof["height"], 4.0))], height=min(roof["height"], 4.0))
+        models[roof["model"] if roof["lidar"] else "not in lidar"] += 1
+        ground = roof["ground"]
+        fp = np.array(poly.exterior.coords)[:-1]
         footprints.append([[round(x - CX, 2), round(CY - y, 2)] for x, y in fp])
-
-        geom = None
-        for child_id in parent.get("children", []):
-            for g in feat["CityObjects"][child_id].get("geometry", []):
-                if g["lod"] == "2.2":
-                    geom = g
         bi = len(meta)
         FOOTPRINT[bi] = fp
-        kas = bool(attrs.get("b3_kas_warenhuis"))
-        height = (attrs.get("b3_h_dak_max") or ground) - ground
-        kind = "house"
-        if kas or geom is None or height < 1.0:
-            # 3D BAG cannot reconstruct glass roofs (lidar passes through), so build those ourselves.
-            kind = "greenhouse" if kas else "shed"
-            height = greenhouse_height(attrs.get("oorspronkelijkbouwjaar")) if kas else 3.0
-            rings = [V[r][:, :2] for r in parent["geometry"][0]["boundaries"][0]]
-            roof_tris = emit(verts, extrude(rings, ground, ground + height), bi, ground)
-        else:
-            surfaces = geom["semantics"]["surfaces"]
-            values = geom["semantics"]["values"]
-            items = []
-            for shell, shell_vals in zip(geom["boundaries"], values):
-                for surf, sv in zip(shell, shell_vals):
-                    k = KIND.get(surfaces[sv]["type"], 1) if sv is not None else 1
-                    items.append((k, [V[r] for r in surf]))
-            roof_tris = emit(verts, items, bi, ground)
-            area = attrs.get("b3_opp_grond") or 0
-            if area > 250 and height < 10:
-                kind = "barn"
-        lm = named.get(parent_id)
+        roof_tris = emit(verts, roof_fit.surfaces(poly, roof), bi, ground)
+        height = roof["height"]
+        if kind == "house" and poly.area > 400 and height < 10 and tags.get("building") in COMMERCIAL:
+            kind = "barn"
+        pid = b["id"]
+        lm = named.get(pid)
         if lm:
             kind = lm["style"]
-        roof_color = sample_roof(aerial, roof_tris)
         meta.append(
             {
-                "id": parent_id,
+                "id": pid,
                 "kind": kind,
                 "axis": round(long_axis(fp), 4),
-                "glass": bool(attrs.get("b3_is_glas_dak")),
-                "year": attrs.get("oorspronkelijkbouwjaar"),
-                "floors": attrs.get("b3_bouwlagen"),
-                "roof": attrs.get("b3_dak_type"),
-                "area": attrs.get("b3_opp_grond"),
+                "glass": False,
+                "year": year_of(tags),
+                "floors": tags.get("building:levels"),
+                "roof": roof["model"],
+                "area": round(poly.area, 1),
                 "height": round(height, 2),
-                "roof_rgb": roof_color,
-                "rand": round(stable_rand(parent_id), 4),
+                "roof_rgb": sample_roof(aerial, roof_tris),
+                "rand": round(stable_rand(pid), 4),
+                "osm": tags.get("name"),
             }
         )
         if lm:
             meta[-1].update({"name": lm["name"], "wall_fixed": lm.get("wall"), "roof_fixed": lm.get("roof"), "frame_fixed": lm.get("frame")})
-            add_landmark_parts(verts, meta, parent_id, lm, ground, long_axis(fp), roof_tris)
-    add_extras(verts, meta, footprints, aerial)
+            add_landmark_parts(verts, meta, pid, lm, ground, long_axis(fp), roof_tris)
+    print(f"roofs: {dict(models)}")
     add_masts(verts, meta, landmarks.get("masts", []))
     texture_roofs(aerial, meta)
-    arr = np.concatenate(verts).astype(np.float32)
+    arr = np.concatenate(verts).astype(np.float32) if verts else np.zeros((0, COLS), np.float32)
     arr.tofile(BUILD / "buildings.bin")
     (BUILD / "buildings.json").write_text(json.dumps(meta))
     (BUILD / "footprints.json").write_text(json.dumps(footprints))
-    from collections import Counter
-
     print(f"{len(meta)} buildings, {len(arr) // 3} triangles, {Counter(m['kind'] for m in meta)}")
 
 
@@ -329,48 +342,6 @@ def texture_roofs(aerial, meta):
         meta[bi]["atlas"] = True
     shifts = [np.hypot(*r[0]) for r in rects.values()]
     print(f"roof atlas {size[0]}x{size[1]} for {len(rects)} buildings, mean photo shift {np.mean(shifts):.2f} m")
-
-
-def add_extras(verts, meta, footprints, aerial):
-    """Tanks, silos and sheds from the BGT that do not overlap a BAG building."""
-    w, h = int(XMAX - XMIN), int(YMAX - YMIN)
-    ox, oz = CX - XMIN, YMAX - CY  # local (x, z) to mask column and row, at 1 m per pixel
-    taken = Image.new("1", (w, h), 0)
-    d = ImageDraw.Draw(taken)
-    for ring in footprints:
-        d.polygon([(x + ox, z + oz) for x, z in ring], fill=1)
-    taken = np.array(taken)
-    feats = json.load(open(RAW / "bgt_overigbouwwerk.geojson"))["features"]
-    for f in feats:
-        p = f["properties"]
-        key = p.get("plus_type") if p.get("type") == "niet-bgt" else p.get("type")
-        if key not in EXTRAS or f["geometry"] is None or f["geometry"]["type"] != "Polygon":
-            continue
-        rings = [np.array(r)[:, :2] for r in f["geometry"]["coordinates"]]
-        c = rings[0].mean(0)
-        cx, cz = int(c[0] - CX + ox), int(CY - c[1] + oz)
-        if 0 <= cx < w and 0 <= cz < h and taken[cz, cx]:
-            continue
-        height, kind = EXTRAS[key]
-        bi = len(meta)
-        FOOTPRINT[bi] = rings[0]
-        roof_tris = emit(verts, extrude(rings, 0.0, height), bi, 0.0)
-        footprints.append([[round(x - CX, 2), round(CY - y, 2)] for x, y in rings[0]])
-        meta.append(
-            {
-                "id": p.get("lokaal_id"),
-                "kind": kind,
-                "axis": round(long_axis(rings[0]), 4),
-                "glass": False,
-                "year": None,
-                "floors": None,
-                "roof": "flat",
-                "area": None,
-                "height": height,
-                "roof_rgb": sample_roof(aerial, roof_tris),
-                "rand": round(stable_rand(str(p.get("lokaal_id"))), 4),
-            }
-        )
 
 
 def sample_roof(aerial, roof_tris):

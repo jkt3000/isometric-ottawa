@@ -1,10 +1,12 @@
-"""Helenaveen van toen: a guided tour along the village's history, as an overlay for the viewer.
+"""Britannia back then: a guided tour along the history of Ottawa's west end, as an overlay for the viewer.
 
-Texts are written for this map from: Het Helenaveen van toen (helenaveenvantoen.nl, every stop links to its story
-there), Monumenten in Nederland, Noord-Brabant (1997, via DBNL), the Rijksmonumenten register and Wikimedia Commons. Photos are from the Rijksdienst voor het Cultureel Erfgoed (CC BY-SA 4.0) and
-other Commons files with an open license; they are downloaded once and published with the site, with credits.
+Texts are written for this map from Wikipedia (Britannia, Britannia Village, Britannia Yacht Club, Queensway Terrace
+North), Heritage Ottawa, the Historical Society of Ottawa, the OC Transpo virtual museum, Kitchissippi Times and the
+NCC; every stop names its source. Stops are found in OpenStreetMap by name, like the places in scripts/landmarks.py.
+No photos yet: a stop can list Wikimedia Commons files under "photos", which are downloaded once with their credits.
 
-Output: data/build/history.json and data/build/history/*.jpg
+Output: data/build/history.json, data/build/history/*.jpg, and data/build/fr.json, the French for the viewer of
+every text here and in scripts/landmarks.py
 """
 
 import hashlib
@@ -15,317 +17,121 @@ import time
 import urllib.parse
 import urllib.request
 
-from config import BUILD, CX, CY
-from geo import wgs_to_rd
+from config import BUILD
+from landmarks import locate
 
-MONUMENTEN = ("Monumenten in Nederland: Noord-Brabant", "https://www.dbnl.org/tekst/sten009monu02_01/sten009monu02_01_0081.php")
-RCE = "Rijksdienst voor het Cultureel Erfgoed, CC BY-SA 4.0"
-HVT = "https://www.helenaveenvantoen.nl/"  # Het Helenaveen van toen: the village's own history site
+WIKI = "https://en.wikipedia.org/wiki/"
+HSO = ("Historical Society of Ottawa", "https://www.historicalsocietyottawa.ca/publications/ottawa-stories/significant-technological-changes-in-the-city/britannia-on-the-bay-75")
 
 STOPS = [
     {
-        "year": "1853",
-        "title": "Helenaveen begint",
-        "at": (191850, 377850),
-        "zoom": 0.25,
-        "text": "Jan en Nicolaas van de Griendt kopen hier 610 hectare hoogveen om af te graven en daarna te ontginnen tot landbouwgrond. Het dorp dat in de zuidoosthoek ontstaat, noemen ze naar Helena, de vrouw van Jan.",
-        "photos": [
-            ("Coll_AV-014_Helena_JM01.jpg", "Helena Panis, de vrouw van Jan van de Griendt, naar wie het dorp heet (publiek domein)"),
-            ("Hulpkaart_75_DNE00_H_detail_Helenaveen_1861.jpg", "Kadastrale hulpkaart van Helenaveen, 1861 (CC0)"),
-        ],
-        "source": MONUMENTEN,
-        "more": HVT + "ontstaan-helenaveen",
+        "year": "1818", "title": "Britannia begins", "fr_title": "Les débuts de Britannia",
+        "find": r"^Britannia Beach$", "zoom": 0.3,
+        "text": "Captain John LeBreton, a naval officer back from the War of 1812, received land on Lac Deschênes "
+                "and laid out a village he called Britannia, eight years before Bytown, the town that became Ottawa.",
+        "fr_text": "Le capitaine John LeBreton, officier de marine revenu de la guerre de 1812, reçoit des terres au "
+                   "bord du lac Deschênes et y trace un village qu'il nomme Britannia, huit ans avant Bytown, la ville "
+                   "qui deviendra Ottawa.",
+        "source": ("Wikipedia: Britannia Village", WIKI + "Britannia_Village,_Ottawa"),
     },
     {
-        "year": "1853",
-        "title": "De Helenavaart",
-        "at": (191975, 378255),
-        "text": "Om de turf af te voeren laat Van de Griendt een eigen kanaal graven, van de Noordervaart bij Meijel tot in de Peel. Het graven begint in juni 1853; in januari 1854 bereiken de kanaalgravers de plek van het dorp. Ze komen van overal: uit de omgeving, uit de veenkoloniën in het noorden, en als seizoenarbeiders uit de buurt van Hannover.",
-        "photos": [
-            ("Karakteristieke_landschappen,_water,_Helenavaart,_Peel,_Deurne,_Bestanddeelnr_164-0184.jpg", "De Helenavaart in 1957, Nationaal Archief, Nederlandse Heidemaatschappij (CC0)"),
-            ("Helenavaart_P1040905.JPG", "De Helenavaart tussen Griendtsveen en Helenaveen, 2010 (publiek domein)"),
-        ],
-        "source": ("Het Helenaveen van toen", HVT),
-        "more": HVT,
+        "year": "1830s", "fr_year": "années 1830", "title": "The forge at the crossroads", "fr_title": "La forge au carrefour",
+        "find": r"Old(e)? Forge", "h": 3,
+        "text": "George Winthrop built a log blacksmith shop where the Richmond and March roads met, some 8 km from "
+                "Bytown. It still stands on its own spot, one of the very few log buildings from the first "
+                "settlement that do.",
+        "fr_text": "George Winthrop construit une forge en rondins au croisement des chemins Richmond et March, à "
+                   "quelque 8 km de Bytown. Elle est toujours à sa place d'origine, l'un des très rares bâtiments en "
+                   "rondins des premiers colons dans ce cas.",
+        "source": ("Heritage Ottawa", "https://heritageottawa.org/en/node/2799"),
     },
     {
-        "year": "1867",
-        "title": "Protestantse kerk",
-        "at": (191907.3, 378307.1),
-        "h": 12,
-        "text": "Een eenvoudig neoclassicistisch zaalkerkje voor de protestantse veenarbeiders, met een fronton en een dakruiter op de voorgevel. In 1883 kreeg de gevel een gedenksteen bij het overlijden van predikant Swalue. Het is een rijksmonument.",
-        "photos": [
-            ("Prot.Kerk_-_Helenaveen_-_20107504_-_RCE.jpg", f"Protestantse kerk in 1979, {RCE}"),
-            ("Coll_AV-020_Swalue_domineeHveen.jpg", "Dominee E.B. Swalue, predikant in Helenaveen van 1867 tot 1883 (publiek domein)"),
-            ("SOEMEERSINGEL_HELENAVEEN_DEURNE_protestantse_kerk_interieur_130718_-_protestant_chruch_interior.jpg", "Het interieur in 2013, Peter Bankers, CC BY-SA 4.0"),
-        ],
-        "source": MONUMENTEN,
-        "more": HVT + "page1-3",
+        "year": "1887", "title": "The cottagers' boat club", "fr_title": "Le club nautique des estivants",
+        "find": r"Britannia Yacht Club", "h": 6,
+        "text": "Britannia had become a summer cottage colony. The cottagers founded the Britannia Aquatic Club, which "
+                "met in an old sawmill on the water and raced war canoes before it took up sailing: today's "
+                "Britannia Yacht Club.",
+        "fr_text": "Britannia est devenue une colonie de chalets d'été. Les estivants fondent le Britannia Aquatic "
+                   "Club, qui se réunit dans une ancienne scierie au bord de l'eau et court en canots de guerre avant "
+                   "de passer à la voile : c'est l'actuel club nautique Britannia.",
+        "source": ("Britannia Yacht Club", "https://byc.ca/about/club-house/"),
     },
     {
-        "year": "1867",
-        "title": "Pastorie en kazemat",
-        "at": (191902.6, 378289.2),
-        "h": 8,
-        "text": "De predikantenwoning, Soemeersingel 25, is net zo oud als de kerk ernaast. In de voortuin staat een S-kazemat, een bunkertje van de Peel-Raamstelling. In mei 1940 werd er in Helenaveen gevochten.",
-        "photos": [
-            ("Pastorie,_voorgevel_-_Helenaveen_-_20107503_-_RCE.jpg", f"De pastorie in 1979, {RCE}"),
-            ("Soemeersingel_25.jpg", "De pastorie in 2007 (publiek domein)"),
-        ],
-        "source": MONUMENTEN,
-        "more": HVT + "verslag-kapitein",
+        "year": "1892", "title": "St. Stephen's", "fr_title": "St. Stephen",
+        "find": r"St\.? Stephen", "h": 8,
+        "text": "One of the two churches of the fashionable resort, and the only one still standing.",
+        "fr_text": "L'une des deux églises de la villégiature chic, et la seule encore debout.",
+        "source": ("Wikipedia: Britannia", WIKI + "Britannia,_Ottawa"),
     },
     {
-        "year": "ca. 1870",
-        "title": "Tabaksschuur",
-        "at": (192660, 377621),
-        "h": 6,
-        "text": "Uit Gelderland kwamen tabakstelers naar Helenaveen. De Maatschappij Helenaveen liet hier een schuur bouwen om de tabak te drogen; al rond 1880 werd die verdeeld in twee boerderijen.",
-        "source": MONUMENTEN,
-        "photos": [("Voormalige_tabaksschuur_ca._1870_Helenaveen.jpg", "De voormalige tabaksschuur in 2021, Sil Bouwmans, CC BY-SA 4.0")],
-        "more": HVT + "tabakstelersrs-uit-gelderland",
+        "year": "1900", "title": "Britannia-on-the-Bay", "fr_title": "Britannia-on-the-Bay",
+        "find": r"^Britannia Beach$", "zoom": 0.8,
+        "text": "On 24 May 1900 the Ottawa Electric Railway opened its new park at the end of the streetcar line. "
+                "Riders crossed the railway on a high footbridge to the beach, pavilions and a long pier, built in "
+                "fifteen weeks on the rubble of a failed power canal and lit at night by ten arc lights.",
+        "fr_text": "Le 24 mai 1900, l'Ottawa Electric Railway ouvre son nouveau parc au bout de la ligne de tramway. "
+                   "Les passagers traversent la voie ferrée sur une haute passerelle vers la plage, les pavillons et "
+                   "une longue jetée, bâtie en quinze semaines sur les déblais d'un canal de centrale raté et éclairée "
+                   "le soir par dix lampes à arc.",
+        "source": HSO,
     },
     {
-        "year": "ca. 1880",
-        "title": "Zondagsschool",
-        "at": (191920.1, 378300.0),
-        "h": 7,
-        "text": "Rechts tegen de kerk kwam rond 1880 een zondagsschool, in 1900 verbouwd. Samen met kerk en pastorie vormt hij het protestantse complex aan de Helenavaart.",
-        "photos": [("Overzicht_westgevel_met_voorgevels_zondagsschool_en_predikantenwoning_-_Helenaveen_-_20348335_-_RCE.jpg", f"Kerk, zondagsschool en pastorie vanaf de overkant van de vaart, 1997, {RCE}")],
-        "source": MONUMENTEN,
-        "more": HVT + "page1-3",
+        "year": "1905", "title": "25,000 on a Sunday", "fr_title": "25 000 personnes un dimanche",
+        "find": r"Britannia (Pier|Point)|Pier", "zoom": 1.2,
+        "text": "On fine Sundays in July and August the streetcars carried up to 25,000 people out to Britannia. The "
+                "steamer G.B. Greene, the 'Queen of the River', took 250 passengers at a time up the river; her "
+                "anchor lies at the beach.",
+        "fr_text": "Les beaux dimanches de juillet et d'août, les tramways amenaient jusqu'à 25 000 personnes à "
+                   "Britannia. Le vapeur G.B. Greene, la « reine de la rivière », emmenait 250 passagers à la fois "
+                   "sur la rivière; son ancre repose sur la plage.",
+        "source": ("OC Transpo virtual museum", "https://www.octranspo.com/en/virtual-museum/colourizing-the-past"),
     },
     {
-        "year": "1881",
-        "title": "Turfstrooiselfabriek",
-        "at": (191854, 378594),
-        "h": 6,
-        "text": "De bovenste, lichte laag veen, het grauwveen, brandde slecht en werd eerst gewoon teruggegooid. Toen men ontdekte dat het een goed strooisel voor stallen was, bouwde de Maatschappij Helenaveen hier een turfstrooiselfabriek, met woningen voor het personeel ertegenaan. Het rijksmonument aan de Rector Nuijtsstraat ging op 4 mei 2025 verloren bij een grote brand.",
-        "source": MONUMENTEN,
-        "photos": [
-            ("Helenaveen_-_Rector_Nuijtsstraat_13a_-_Voormalig_turfstrooiselfabriek_met_aangebouwde_dienstwoningen.JPG", "De voormalige fabriek met de dienstwoningen, 2013, John Scholte, CC BY-SA 3.0 NL"),
-        ],
-        "more": HVT + "turfstrooiselfabriek",
+        "year": "1958", "title": "Queensway Terrace", "fr_title": "Queensway Terrace",
+        "latlon": (45.35806, -75.78667), "zoom": 0.5,
+        "text": "Robert Campeau's firm bought 114 acres of the Arkell farm on Pinecrest Road and built family houses "
+                "on more than 300 lots, one of Ottawa's first large postwar neighbourhoods.",
+        "fr_text": "L'entreprise de Robert Campeau achète 114 acres de la ferme Arkell, sur le chemin Pinecrest, et "
+                   "construit des maisons familiales sur plus de 300 lots : l'un des premiers grands quartiers "
+                   "d'après-guerre d'Ottawa.",
+        "source": ("Wikipedia: Queensway Terrace North", WIKI + "Queensway_Terrace_North"),
     },
     {
-        "year": "ca. 1885",
-        "title": "Protestantse begraafplaats",
-        "latlon": (51.38613, 5.91274),
-        "h": 2,
-        "text": "Aan de Aardbeiweg liggen veenarbeiders begraven die van ver kwamen: uit de hoogveengebieden in het noorden van Nederland en uit Duitsland.",
-        "source": MONUMENTEN,
+        "year": "1959", "title": "The last streetcar", "fr_title": "Le dernier tramway",
+        "find": r"Old(e)? Forge", "zoom": 0.6,
+        "text": "On 1 May 1959 the last car ran out to Britannia, on what had become Ottawa's last streetcar line. "
+                "Buses took over.",
+        "fr_text": "Le 1er mai 1959, le dernier tramway roule jusqu'à Britannia, sur ce qui était devenu la dernière "
+                   "ligne de tramway d'Ottawa. Les autobus prennent le relais.",
+        "source": ("Kitchissippi Times", "https://kitchissippi.com/?p=188086"),
     },
     {
-        "year": "1908",
-        "title": "Wilhelminahoeve",
-        "at": (191131, 380087),
-        "h": 8,
-        "text": "De eerste van elf grote boerderijen die de Maatschappij Helenaveen vanaf 1908 bouwde, onder directeur Adrianus Bos. Ze heten koningshoeven naar leden van het koningshuis; dat het Fonds Koning Willem III ze bouwde is een misvatting, het droeg alleen bij aan een paar ervan.",
-        "photos": [
-            ("Wilhelminahoeve,_voorgevel_-_Helenaveen_-_20107511_-_RCE.jpg", f"De Wilhelminahoeve in 1979, {RCE}"),
-            ("Julianahoeve,_voor-_en_linker_zijgevel_-_Helenaveen_-_20107512_-_RCE.jpg", f"De Julianahoeve in 1979, {RCE}"),
-            ("Nassauhoeve,_voor-_en_rechter_zijgevel_-_Helenaveen_-_20107508_-_RCE.jpg", f"De Nassauhoeve in 1979, {RCE}"),
-            ("Oranjehoeve_-_Helenaveen_-_20107510_-_RCE.jpg", f"De Oranjehoeve in 1979, {RCE}"),
-            ("Hendrikhoeve_-_Helenaveen_-_20107502_-_RCE.jpg", f"De Hendrikhoeve in 1979, {RCE}"),
-        ],
-        "source": ("Het Helenaveen van toen: de koningshoeven", HVT + "wilhelminahoeve"),
-        "more": HVT + "wilhelminahoeve",
+        "year": "1961", "title": "The plant and Mud Lake", "fr_title": "L'usine et le lac Mud",
+        "find": r"^Mud Lake$", "zoom": 0.6,
+        "text": "The city built the Britannia Water Purification Plant on the point from 1958 to 1961. Its "
+                "causeway cut off a shallow bay of the river, which became Mud Lake, now the best birding spot in "
+                "Ottawa.",
+        "fr_text": "La Ville construit l'usine de purification de l'eau Britannia sur la pointe, de 1958 à 1961. Sa "
+                   "digue isole une baie peu profonde de la rivière, qui devient le lac Mud, aujourd'hui le meilleur "
+                   "endroit d'Ottawa pour observer les oiseaux.",
+        "source": ("Ottawa Citizen", "https://www.pressreader.com/canada/ottawa-citizen/20210114/281565178404492"),
     },
     {
-        "year": "na 1908",
-        "title": "Emmahoeve",
-        "at": (190481, 381355),
-        "h": 8,
-        "text": "Nog een van de koningshoeven, aan de Kaasweg, vernoemd naar koningin Emma. Net als de andere hoeven is het een kop-rompboerderij: een woonhuis met daarachter een grote schuur.",
-        "photos": [
-            ("Emmahoeve_-_Helenaveen_-_20107501_-_RCE.jpg", f"De Emmahoeve in 1979, {RCE}"),
-            ("Helenaveen_-_Kaasweg_bij_2_Boerderij_Emma_Hoeve_met_varkensstal.JPG", "De Emmahoeve met varkensstal, 2013, John Scholte, CC BY-SA 3.0 NL"),
-        ],
-        "source": ("Het Helenaveen van toen: de koningshoeven", HVT + "wilhelminahoeve"),
-        "more": HVT + "wilhelminahoeve",
+        "year": "1960s", "fr_year": "années 1960", "title": "The Queensway cuts through", "fr_title": "L'autoroute 417 traverse",
+        "latlon": (45.3505, -75.7870), "zoom": 0.5,
+        "text": "Highway 417 was built along the old railway line and split Queensway Terrace in two, North and South.",
+        "fr_text": "L'autoroute 417 est construite le long de l'ancienne voie ferrée et coupe Queensway Terrace en "
+                   "deux : Nord et Sud.",
+        "source": ("Wikipedia: Queensway Terrace South", WIKI + "Queensway_Terrace_South"),
     },
     {
-        "year": "1910",
-        "title": "De Gouden Helm",
-        "latlon": (51.39051, 5.90431),
-        "h": 2,
-        "text": "In het veen bij Helenaveen werd in 1910 een vergulde helm van een Romeinse officier gevonden, de Gouden Helm van Deurne. Het gemeenschapshuis in het dorp is ernaar vernoemd; op de vindplaats staat een gedenkteken.",
-        "photos": [
-            ("Roman_cavalry_helmet_of_Deurne.jpg", "De helm in het Rijksmuseum van Oudheden, Michiel (Wiki Loves Art), CC BY-SA 2.0"),
-        ],
-        "source": ("Het Helenaveen van toen", HVT + "een-romein-komt-om-in-de-peel"),
-        "more": HVT + "een-romein-komt-om-in-de-peel",
-    },
-    {
-        "year": "1913",
-        "title": "Willem III-hoeve",
-        "at": (190290, 381292),
-        "h": 8,
-        "text": "De noordelijkste koningshoeve, met het jaartal en de naam in de trapgevel. Een rijksmonument, en tegenwoordig een ijsboerderij met terras.",
-        "photos": [
-            ("Willem_III_hoeve,_voor-_en_rechter_zijgevel_-_Helenaveen_-_20107513_-_RCE.jpg", f"De Willem III-hoeve in 1979, {RCE}"),
-            ("Overzicht_met_voorgevel_boerderij_met_sloot_op_de_voorgrond_-_Helenaveen_-_20348354_-_RCE.jpg", f"De Willem III-hoeve in 1997, {RCE}"),
-        ],
-        "source": MONUMENTEN,
-        "more": HVT + "wilhelminahoeve",
-    },
-    {
-        "year": "1915",
-        "title": "Het veen is op",
-        "at": (192750, 378900),
-        "text": "In 1915 stopt de grote turfwinning en wordt er vooral ontgonnen tot land- en tuinbouwgrond. Wat je hier ziet is wat er van het hoogveen over is: heide, vennen en bos, nu natuur in de Deurnsche Peel.",
-        "photos": [("Mariapeel_Helenaveen_-_panoramio.jpg", "Hoogveen in de Mariapeel bij Helenaveen, Aat van den Heuvel, CC BY 3.0")],
-        "source": MONUMENTEN,
-        "more": HVT + "turfgraven",
-    },
-    {
-        "year": "ca. 1930",
-        "title": "Dorpsschool De Peelparel",
-        "at": (191907.0, 377855.0),
-        "h": 9,
-        "text": "Een gaaf bewaarde dorpsschool met zes lokalen, met een klokkentorentje op het dak. Nog altijd de basisschool van Helenaveen.",
-        "photos": [("Bassisschool_de_Peelparel_Helenaveen_8-025.jpg", "De Peelparel in 2001, publiek domein")],
-        "source": MONUMENTEN,
-        "more": HVT + "page1-3",
-    },
-    {
-        "year": "1937",
-        "title": "Kipkarren op het Kerkplein",
-        "latlon": (51.38868, 5.91982),
-        "h": 2,
-        "text": "Na het vervenen moest de grond nog ontgonnen worden, vanaf 1937 ook door werklozen in de werkverschaffing. Met kipkarren legden ze wegen aan, groeven sloten en dempten oude turfvaarten. De karren op het Kerkplein herinneren daaraan; met turfsteken hadden ze niets te maken.",
-        "source": ("Het Helenaveen van toen", HVT + "zinkske-ss-kamp"),
-        "more": HVT + "zinkske-ss-kamp",
-    },
-    {
-        "year": "1941",
-        "title": "Het Wehrmachthuisje aan de Koolweg",
-        "at": (191577, 379760),
-        "h": 4,
-        "text": "Tegen de bosrand aan de Koolweg bouwden de Duitsers een huisje voor de bemanning van een zoeklicht. Het hoorde bij de Kammhuberlinie, de luchtverdediging tegen Britse bommenwerpers op weg naar het Ruhrgebied. Het staat achter Koolweg 42 tegen de bosrand, op nummer 40 denk ik.",
-        "source": ("Het Helenaveen van toen", HVT + "wehrmachtshuisje"),
-        "more": HVT + "wehrmachtshuisje",
-    },
-    {
-        "year": "1944",
-        "title": "De oude kerk verwoest",
-        "at": (192080, 377790),
-        "h": 14,
-        "text": "In de oorlog ging de rooms-katholieke kerk uit 1857 verloren, een vroeg werk van de beroemde architect P.J.H. Cuypers. Op 8 oktober 1944 hielden de Duitsers bij de kerk een razzia en voerden mannen uit het dorp weg. Het oorlogsmonument aan de Oude Peelstraat kwam er op initiatief van wie terugkeerde.",
-        "photos": [
-            ("Helenaveen_Monument_Oude_Peelstraat.jpg", "Het oorlogsmonument aan de Oude Peelstraat, WoodenSpoon, CC BY-SA 4.0"),
-            ("Gedenkteken_uit_2004_van_de_razzia_in_Helenaveen_in_1944_Soemeersingel_foto_aug_2014.jpg", "Gedenkteken uit 2004 voor de razzia van 1944, Peter Bankers, CC BY-SA 4.0"),
-        ],
-        "source": MONUMENTEN,
-        "more": HVT + "gedeporteerden-kerkrazzia",
-    },
-    {
-        "year": "1950",
-        "title": "Sint-Willibrorduskerk",
-        "at": (192080, 377790),
-        "h": 25,
-        "text": "Op dezelfde plek bouwde J. Deltrap een nieuwe kerk: een eenvoudige zaalkerk in traditionele vormen, met een klokkentoren die met 26 meter boven het dorp uitsteekt. Eind 2023 werd de kerk met een afscheidsviering gesloten; nu zijn er veertien woningen in, en een Mariakapel die open blijft voor gebed.",
-        "photos": [
-            ("Sint-Willibroduskerk_(Helenaveen).jpg", "De Sint-Willibrorduskerk in 2022, ACABJULIA, CC BY-SA 4.0"),
-            ("Helenaveen_St.Willibrordus_Frans_Tuinstra.jpg", "Reliëf van Sint-Willibrord door Frans Tuinstra, WoodenSpoon, CC BY-SA 4.0"),
-        ],
-        "source": MONUMENTEN,
-        "more": HVT + "rectoraat",
-    },
-    {
-        "year": "2006",
-        "title": "Verleden Veen",
-        "at": (192068, 377892),
-        "h": 2,
-        "text": "Op de hoek van de Soemeersingel en de Sevenumseweg staat Verleden Veen van Jan Ros, gemaakt voor 150 jaar Helenaveen, dat in 2003 werd gevierd.",
-        "photos": [("Helenaveen_Verleden_Veen_Jan_Ros.jpg", "Verleden Veen van Jan Ros, WoodenSpoon, CC BY-SA 4.0")],
-        "source": ("Kunstwacht Deurne", "https://deurne.kunstwacht.nl/kunstwerken/pdf/3589-verleden-veen"),
-    },
-    {
-        "year": "2014",
-        "title": "Peeltroef",
-        "at": (190176, 381262),
-        "h": 3,
-        "text": "Aan de Soemeersingel, bij de Willem III-hoeve, staat Peeltroef van Dirk Verberne: twee peelbanken en een zuil die laat zien hoe hoog het veen hier stond voordat het werd afgegraven.",
-        "photos": [("Helenaveen_Peeltroef_(2014)_Dirk_Verberne.jpg", "Peeltroef van Dirk Verberne, WoodenSpoon, CC BY-SA 4.0")],
-        "source": ("Wikimedia Commons", "https://commons.wikimedia.org/wiki/File:Helenaveen_Peeltroef_(2014)_Dirk_Verberne.jpg"),
-    },
-    {
-        "year": "nu",
-        "title": "Het katholieke kerkhof",
-        "latlon": (51.38511, 5.91346),
-        "h": 2,
-        "text": "Op het katholieke kerkhof aan de Aardbeiweg zetten vrijwilligers van Memori zich in om de oude graven te bewaren, en daarmee de verhalen van de mensen die het dorp opbouwden. Er liggen ook Nederlandse oorlogsgraven.",
-        "photos": [
-            ("Rk_begraafplaats_Helenaveen.jpg", "De katholieke begraafplaats in 2005 (publiek domein)"),
-            ("Coll_AV-004_Kerkhof_RK.JPG", "Oude graven op de katholieke begraafplaats (publiek domein)"),
-        ],
-        "source": ("Het Helenaveen van toen", HVT + "memori"),
-        "more": HVT + "memori",
-    },
-    {
-        "year": "rijksmonument",
-        "title": "Keuterboerderij aan de Soemeersingel",
-        "latlon": (51.40246, 5.91362),
-        "h": 5,
-        "text": "Een kleine boerderij met een schuurtje en karschop, Soemeersingel 75. Zo woonden de keuterboeren die naast hun werk in het veen een paar hectare grond bewerkten, een wereld van verschil met de grote koningshoeven verderop.",
-        "photos": [("Soemeersingel_75.jpg", "Soemeersingel 75 in 2007 (publiek domein)")],
-        "source": ("Rijksmonumentenregister via Wikidata", "https://www.wikidata.org/wiki/Special:Search?search=Keuterboerderij+Soemeersingel+75"),
-    },
-    {
-        "year": "1939",
-        "title": "Peelkanaal",
-        "latlon": (51.41008, 5.93252),
-        "text": "Het Peelkanaal bij Evertsoord is een rijksmonument van de Peel-Raamstelling, de verdedigingslinie van 1939 en 1940. Het kanaal diende als gracht tegen tanks; langs de linie stonden kazematten zoals die in de pastorietuin.",
-        "source": ("Rijksmonumentenregister via Wikidata", "https://www.wikidata.org/wiki/Special:Search?search=Peelkanaal+bij+Evertsoord"),
-        "more": HVT + "verslag-kapitein",
-    },
-    {
-        "year": "1956",
-        "title": "De jager die het zwijn doodde",
-        "latlon": (51.3887, 5.91966),
-        "h": 2,
-        "text": "Een beeld van Niel Steenbergen uit 1956, nu een gemeentelijk monument: een jager met het wilde zwijn dat hij heeft gedood.",
-        "photos": [("Helenaveen_Jager_die_het_zwijn_doodde_Niel_Steenbergen.jpg", "De jager die het zwijn doodde, WoodenSpoon, CC BY-SA 4.0")],
-        "source": ("Wikimedia Commons", "https://commons.wikimedia.org/wiki/File:Helenaveen_Jager_die_het_zwijn_doodde_Niel_Steenbergen.jpg"),
-    },
-    {
-        "year": "beeld",
-        "title": "Koningin Juliana",
-        "latlon": (51.38939, 5.91762),
-        "h": 2,
-        "text": "Een borstbeeld van koningin Juliana door Jesualda Kwanten, aan de Dominee Swaluestraat. Het koningshuis is van oudsher verbonden met Helenaveen, via het Fonds Koning Willem III en de koningshoeven.",
-        "photos": [("Helenaveen_Koningin_Juliana_Jesualda_Kwanten.jpg", "Borstbeeld van koningin Juliana, WoodenSpoon, CC BY-SA 4.0")],
-        "source": ("Wikimedia Commons", "https://commons.wikimedia.org/wiki/File:Helenaveen_Koningin_Juliana_Jesualda_Kwanten.jpg"),
-    },
-    {
-        "year": "dorpshuis",
-        "title": "Gemeenschapshuis De Gouden Helm",
-        "latlon": (51.38802, 5.91843),
-        "h": 6,
-        "text": "Het dorpshuis draagt de naam van de vergulde Romeinse helm die in 1910 in het veen bij Helenaveen werd gevonden.",
-        "source": ("Het Helenaveen van toen", HVT + "een-romein-komt-om-in-de-peel"),
-        "more": HVT + "een-romein-komt-om-in-de-peel",
-    },
-    {
-        "year": "20e eeuw",
-        "title": "De kassen",
-        "at": (192280, 377570),
-        "h": 5,
-        "zoom": 0.6,
-        "text": "Na het veen kwam de tuinbouw. Groente ging eerst per stoomtram naar Venlo; tegenwoordig bepalen grote kassen het beeld ten oosten van het dorp.",
-        "source": ("Het Helenaveen van toen", HVT + "kassen-in-helenaveen"),
-        "more": HVT + "kassen-in-helenaveen",
-    },
-    {
-        "year": "nu",
-        "title": "Helenaveen nu",
-        "at": (191850, 377850),
-        "zoom": 0.3,
-        "text": "Vanwege de bijzondere geschiedenis als veenkolonie is Helenaveen sinds 1999 een beschermd dorpsgezicht. Einde van de rondleiding. Veel meer verhalen, foto's en kaarten staan op Het Helenaveen van toen.",
-        "photos": [("Soemeersingel_Helenaveen_zonsondergang_november_2014.jpg", "Zonsondergang aan de Soemeersingel, 2014, Peter Bankers, CC BY-SA 4.0")],
-        "source": ("Land van de Peel", "https://www.landvandepeel.nl/en/locations/459373849/protected-rural-area-helenaveen"),
-        "more": HVT,
+        "year": "2017", "title": "The floods", "fr_title": "Les inondations",
+        "find": r"^Mud Lake$", "zoom": 0.4,
+        "text": "The spring floods of 2017 and again 2019 put the shore of Britannia under water and badly damaged "
+                "the trails around Mud Lake; the NCC has since rebuilt them and replaced the footbridge.",
+        "fr_text": "Les crues printanières de 2017, puis de 2019, inondent la rive de Britannia et abîment gravement "
+                   "les sentiers autour du lac Mud; la CCN les a depuis refaits et a remplacé la passerelle.",
+        "source": ("NCC", "https://ncc-ccn.gc.ca/projects/mud-lake-trail-rehabilitation-pedestrian-bridge-replacement"),
     },
 ]
 
@@ -338,7 +144,7 @@ def commons_thumb(name, width=960):  # Wikimedia only serves a fixed set of thum
 
 def download(url, tries=6):
     """Wikimedia rate-limits bursts of thumbnail requests; wait politely and retry."""
-    req = urllib.request.Request(url, headers={"User-Agent": "isometric-helenaveen/0.1 (personal map)"})
+    req = urllib.request.Request(url, headers={"User-Agent": "isometric-ottawa/0.1 (personal map)"})
     for attempt in range(tries):
         try:
             data = urllib.request.urlopen(req, timeout=60).read()
@@ -387,11 +193,19 @@ def route_order(stops):
 def main():
     out_dir = BUILD / "history"
     out_dir.mkdir(parents=True, exist_ok=True)
+    fr = json.loads((BUILD / "fr_landmarks.json").read_text()) if (BUILD / "fr_landmarks.json").exists() else {}
     stops = []
     for i, s in enumerate(STOPS, start=1):
-        x, y = s["at"] if "at" in s else wgs_to_rd(*s["latlon"])
-        stop = {"n": i, "year": s["year"], "title": s["title"], "text": s["text"], "x": round(x, 1), "y": round(y, 1),
-                "h": s.get("h", 0), "zoom": s.get("zoom", 1.2),
+        try:
+            hit = locate({"name": s["title"], **{k: s[k] for k in ("find", "latlon", "near") if k in s}})
+        except KeyError as e:
+            print(f"  skipped: {e}")
+            continue
+        for k in ("year", "title", "text"):
+            if s.get(f"fr_{k}"):
+                fr[s[k]] = s[f"fr_{k}"]
+        stop = {"n": i, "year": s["year"], "title": s["title"], "text": s["text"], "x": round(hit["x"], 1),
+                "y": round(hit["y"], 1), "h": s.get("h", 0), "zoom": s.get("zoom", 1.2),
                 "source": {"label": s["source"][0], "url": s["source"][1]}, "more": s.get("more")}
         stop["photos"] = []
         for k, (name, credit) in enumerate(s.get("photos", [])):
@@ -402,7 +216,7 @@ def main():
             stop["photos"].append({"src": f"history/{dst.name}", "credit": credit,
                                    "url": f"https://commons.wikimedia.org/wiki/File:{urllib.parse.quote(name)}"})
         stops.append(stop)
-    stops = route_order(stops)
+    # In order of time, which is how the stories build on each other (route_order() would walk them by place instead).
     for n, stop in enumerate(stops, start=1):
         stop["n"] = n
     # A version in every photo URL, so browsers never show a cached photo that has since been replaced.
@@ -411,7 +225,8 @@ def main():
         for ph in stop["photos"]:
             ph["src"] += f"?v={version}"
     (BUILD / "history.json").write_text(json.dumps({"stops": stops}, ensure_ascii=False, indent=1))
-    print(f"{len(stops)} stops, {sum(len(s['photos']) for s in stops)} photos on {sum(bool(s['photos']) for s in stops)} stops")
+    (BUILD / "fr.json").write_text(json.dumps(fr, ensure_ascii=False, indent=1))
+    print(f"{len(stops)} stops, {sum(len(s['photos']) for s in stops)} photos; {len(fr)} French texts")
 
 
 if __name__ == "__main__":

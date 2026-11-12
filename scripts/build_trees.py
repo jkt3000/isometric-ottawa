@@ -2,7 +2,7 @@
 # requires-python = ">=3.11"
 # dependencies = ["numpy", "scipy", "scikit-image", "tifffile", "imagecodecs", "pillow"]
 # ///
-"""Find individual trees in the AHN canopy height model.
+"""Find individual trees in the canopy height model: the HRDEM lidar surface minus the bare earth (scripts/dem.py).
 
 Output (data/build/):
   trees.bin   float32 per tree: x, z, height, crown radius, crown base, kind, r, g, b, seed
@@ -12,27 +12,15 @@ Output (data/build/):
 import json
 
 import numpy as np
-import tifffile
 from PIL import Image, ImageDraw
 from scipy import ndimage as ndi
 from skimage.segmentation import watershed
 
+import dem
 from aerial import load_aerial
-from config import BUILD, CHUNK, CX, CY, GROUND_RES, NX, NY, RAW, XMIN, YMAX
+from config import BUILD, CX, CY, GROUND_RES, XMIN, YMAX
 
 RES = 0.5
-
-
-def mosaic(cov):
-    px = int(CHUNK / RES)
-    out = np.full((NY * px, NX * px), np.nan, dtype=np.float32)
-    for ix in range(NX):
-        for iy in range(NY):
-            a = tifffile.imread(RAW / "ahn" / f"{cov}_{ix}_{iy}.tif").astype(np.float32)
-            a[(a > 1000) | (a < -100)] = np.nan
-            row = (NY - 1 - iy) * px
-            out[row : row + px, ix * px : ix * px + px] = a[:px, :px]
-    return out
 
 
 def fill_nearest(a):
@@ -51,8 +39,8 @@ def footprint_mask(shape, grow_m):
 
 
 def main():
-    dsm = mosaic("dsm_05m")
-    dtm = fill_nearest(mosaic("dtm_05m"))
+    dsm = dem.load("dsm", RES)
+    dtm = dem.load("dtm", RES)
     chm = np.nan_to_num(dsm - dtm, nan=0.0)
     chm[chm < 0] = 0
     chm[footprint_mask(chm.shape, 1.0)] = 0
@@ -83,7 +71,7 @@ def main():
     areas = ndi.sum_labels(np.ones_like(labels), labels, index=np.arange(1, len(ys) + 1)) * RES * RES
     radius = np.clip(np.sqrt(areas / np.pi), 1.0, 7.5)
 
-    # Crown color from the aerial photo: evergreens stay green in the (spring) photo.
+    # Crown color from the aerial photo: DRAPE is flown in spring with the leaves off, so evergreens are the green ones.
     aerial = load_aerial().astype(np.float32)
     scale = int(RES / GROUND_RES)
     small = aerial.reshape(aerial.shape[0] // scale, scale, aerial.shape[1] // scale, scale, 3).mean(axis=(1, 3))
@@ -101,9 +89,8 @@ def main():
         [wx - CX, CY - wy, hs, radius, base, kind, r / 255, g / 255, b / 255, rng.random(len(hs))], -1
     ).astype(np.float32)
 
-    # Municipal trees from the BGT that the canopy model missed (young street trees).
-    bgt = json.load(open(RAW / "bgt_vegetatieobject_punt.geojson"))["features"]
-    pts = np.array([f["geometry"]["coordinates"][:2] for f in bgt])
+    # Single trees mapped in OpenStreetMap that the canopy model missed (young street trees, planted since 2020).
+    pts = np.array(json.loads((BUILD / "surfaces.json").read_text())["trees"]).reshape(-1, 2)
     have = np.zeros(chm.shape, bool)
     have[ys, xs] = True
     have = ndi.binary_dilation(have, iterations=int(3 / RES))
@@ -121,7 +108,7 @@ def main():
     for m in json.loads(lm.read_text()).get("masts", []) if lm.exists() else []:
         trees = trees[np.hypot(trees[:, 0] - (m["x"] - CX), trees[:, 1] - (CY - m["y"])) > 6]
     trees.tofile(BUILD / "trees.bin")
-    print(f"{len(trees)} trees ({len(extra)} from BGT), {int(kind.sum())} evergreen, mean radius {radius.mean():.1f} m")
+    print(f"{len(trees)} trees ({len(extra)} from OpenStreetMap), {int(kind.sum())} evergreen, mean radius {radius.mean():.1f} m")
 
 
 if __name__ == "__main__":

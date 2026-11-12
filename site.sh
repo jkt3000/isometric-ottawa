@@ -23,7 +23,7 @@ for look in $VIEWS; do
   dir=$([ -z "$suffix" ] && echo "" || echo "v$look/")
   full="out/full-$SCALE$suffix.png"
   [ -f "$full" ] || { echo "skipping view $look: no $full" >&2; continue; }
-  pyramid "$full" "${dir}helenaveen"
+  pyramid "$full" "${dir}ottawa"
   # The buildings and trees once more, transparent elsewhere: the viewer lays them over the cars and walkers behind them.
   objects="out/objects-$SCALE$suffix.png"
   if [ -f "$objects" ]; then
@@ -40,16 +40,16 @@ m = json.load(open(f"out/tiles-{scale}/layout.json"))
 m["views"] = []
 for look in views:
     base = f"tiles-{stamp}/" + ("" if look == "45" else f"v{look}/")
-    if not os.path.isdir(f"{site}/{base}helenaveen_files"):
+    if not os.path.isdir(f"{site}/{base}ottawa_files"):
         continue
-    view = {"look": int(look), "tiles": f"{base}helenaveen_files/"}
+    view = {"look": int(look), "tiles": f"{base}ottawa_files/"}
     if os.path.isdir(f"{site}/{base}objects_files"):
         view["objects"] = f"{base}objects_files/"
     m["views"].append(view)
 m.update({k: m["views"][0][k] for k in ("tiles", "objects") if k in m["views"][0]})
 json.dump(m, open(f"{site}/map.json", "w"))
 PY
-cp viewer/index.html viewer/en.json viewer/og.png data/build/places.json data/build/hotspots.json data/build/routes.json data/build/history.json data/build/traffic.json "$SITE/"
+cp viewer/index.html data/build/fr.json viewer/og.png data/build/places.json data/build/hotspots.json data/build/routes.json data/build/history.json data/build/traffic.json "$SITE/"
 cp -r data/build/history "$SITE/history"
 [ -d data/build/photos ] && cp -r data/build/photos "$SITE/photos"
 cp -r viewer/music "$SITE/music"

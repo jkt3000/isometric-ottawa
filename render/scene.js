@@ -47,16 +47,21 @@ function nearestRoof(c) {
   return best;
 }
 
-// Facades by construction year (BAG): the eras of a Peel village.
+// Facades by construction year (OpenStreetMap start_date, when it has one): the eras of Ottawa's west end. Most of it
+// is postwar, so a house without a year counts as 1960.
 const ERAS = [
-  [1945, [[rgb(138, 68, 50), 4], [rgb(118, 58, 44), 3], [rgb(158, 90, 64), 2], [rgb(226, 220, 206), 1]], rgb(236, 234, 226)],
-  [1970, [[rgb(160, 88, 62), 4], [rgb(176, 106, 74), 3], [rgb(140, 78, 58), 2], [rgb(200, 172, 132), 1]], rgb(232, 230, 222)],
-  [1995, [[rgb(112, 72, 56), 3], [rgb(128, 84, 62), 3], [rgb(196, 170, 128), 2], [rgb(150, 80, 58), 2]], rgb(88, 62, 48)],
-  [9999, [[rgb(150, 80, 60), 3], [rgb(112, 108, 104), 2], [rgb(226, 222, 212), 2], [rgb(84, 64, 52), 2], [rgb(176, 104, 74), 1]], rgb(58, 60, 64)],
+  // Britannia's old cottages and village houses: clapboard and red brick.
+  [1945, [[rgb(226, 222, 210), 3], [rgb(150, 74, 56), 3], [rgb(186, 196, 200), 1], [rgb(204, 186, 150), 2]], rgb(240, 238, 230)],
+  // Postwar bungalows and two-storeys: red-brown and buff brick, white, beige and pale blue aluminum siding.
+  [1975, [[rgb(146, 76, 58), 4], [rgb(122, 70, 56), 2], [rgb(196, 170, 126), 3], [rgb(232, 228, 216), 3], [rgb(208, 196, 168), 2], [rgb(170, 186, 196), 1]], rgb(238, 236, 228)],
+  // Townhouses and condos of the 1970s to 90s: tan brick, beige and grey siding.
+  [2000, [[rgb(180, 150, 112), 3], [rgb(204, 192, 166), 3], [rgb(150, 150, 146), 2], [rgb(132, 82, 62), 1]], rgb(236, 234, 226)],
+  // New infill: fibre-cement in greys and white, dark trim.
+  [9999, [[rgb(112, 114, 116), 3], [rgb(226, 224, 216), 3], [rgb(78, 80, 84), 2], [rgb(168, 160, 146), 2]], rgb(52, 54, 58)],
 ];
 
 function era(m) {
-  return ERAS.find(([until]) => (m.year || 1985) < until);
+  return ERAS.find(([until]) => (m.year || 1960) < until);
 }
 
 function frameColor(m) {
@@ -483,7 +488,8 @@ function makeSlab(area) {
   const side = new THREE.MeshLambertMaterial({ map: tex });
   const top = new THREE.MeshBasicMaterial({ color: 0x3a2a1c });
   const box = new THREE.Mesh(new THREE.BoxGeometry(area.hx * 2, SLAB, area.hz * 2), [side, side, top, top, side, side]);
-  box.position.y = -SLAB / 2 - 0.02;
+  // Well below the ground: a software renderer (SwiftShader) has only ~15 cm of depth precision over the camera range.
+  box.position.y = -SLAB / 2 - 0.6;
   return box;
 }
 
