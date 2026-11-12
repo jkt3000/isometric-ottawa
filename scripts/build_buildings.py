@@ -47,6 +47,7 @@ KINDS = {
     "greenhouse": "greenhouse", "storage_tank": "tank", "silo": "silo",
     "warehouse": "barn", "industrial": "barn", "barn": "barn", "farm_auxiliary": "barn", "hangar": "barn",
 }
+HOUSES = {"house", "detached", "semidetached_house", "terrace", "bungalow", "residential", "yes"}
 COMMERCIAL = {"commercial", "retail", "supermarket", "industrial", "warehouse", "office", "yes", "civic", "public"}
 # Heights for buildings the 2020 lidar doesn't show, when OpenStreetMap has no height or storeys either.
 DEFAULT_HEIGHT = {"house": 7.0, "shed": 2.8, "canopy": 3.0, "barn": 6.0, "school": 8.0, "church": 10.0, "greenhouse": 4.0,
@@ -279,7 +280,8 @@ def main():
         if poly.geom_type != "Polygon" or poly.area < 6:
             continue
         kind = building_kind(tags)
-        roof = roof_fit.fit(poly, dsm, dtm, fallback_height=tagged_height(tags, kind))
+        roof = roof_fit.fit(poly, dsm, dtm, fallback_height=tagged_height(tags, kind),
+                            house=kind == "house" and tags.get("building") in HOUSES)
         if roof is None:
             continue
         if kind == "canopy":

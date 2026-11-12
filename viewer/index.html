@@ -6,15 +6,15 @@
 <title>Isometric Ottawa West</title>
 <meta name="description" content="Britannia, Queensway Terrace North and Ottawa's west end in miniature, rebuilt from open maps, lidar and an aerial photo.">
 <meta property="og:type" content="website">
-<meta property="og:url" content="SITE_URL">
+<meta property="og:url" content="https://jkt3000.github.io/isometric-ottawa/">
 <meta property="og:title" content="Isometric Ottawa West">
 <meta property="og:description" content="Britannia, Queensway Terrace North and Ottawa's west end in miniature, rebuilt from open maps, lidar and an aerial photo.">
-<meta property="og:image" content="SITE_URLog.png">
+<meta property="og:image" content="https://jkt3000.github.io/isometric-ottawa/og.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta property="og:image:alt" content="Ottawa's west end in isometric pixel art, from the Queensway to Britannia Bay on the Ottawa River">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:image" content="SITE_URLog.png">
+<meta name="twitter:image" content="https://jkt3000.github.io/isometric-ottawa/og.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Serif:wght@500;600&family=IBM+Plex+Sans:wght@400;500&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <style>
@@ -441,7 +441,7 @@ Then:
 Work step by step, check the licences of the data you use, and ask me about the stories and places that only the people who live there know.</pre>
   <nav>
     <button type="button" id="make-copy" data-fr="Copier la consigne">Copy the prompt</button>
-    <a href="REPO_URL" target="_blank" rel="noopener" data-fr="Code sur GitHub">Code on GitHub</a>
+    <a href="https://github.com/jkt3000/isometric-ottawa" target="_blank" rel="noopener" data-fr="Code sur GitHub">Code on GitHub</a>
     <button type="button" class="close" id="make-close" data-fr="Fermer">Close</button>
   </nav>
 </dialog>
@@ -551,7 +551,7 @@ Work step by step, check the licences of the data you use, and ask me about the 
 
   // The fixed spots of this map, in UTM meters: where it opens (and the home button goes back to, at that zoom and
   // height above the ground), the middle the birds fly over, and the swimmers off Britannia Beach.
-  const SPOTS = SPOTS_JSON;
+  const SPOTS = { home: [438240, 5022883], homeZoom: 1 / 1.3, homeHeight: 3, centre: [438350, 5023300], swimmers: [437215, 5023924] };
 
   // UTM zone 18N (NAD83(CSRS), EPSG:2959) to latitude and longitude and back: Krueger's series, as scripts/geo.py.
   const UTM = (() => {

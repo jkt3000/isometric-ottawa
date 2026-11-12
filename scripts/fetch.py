@@ -345,11 +345,14 @@ out center tags;"""),
                      f'nwr["tourism"]({bb}); nwr["historic"]({bb}); node["name"]["amenity"]({bb}); node["name"]["shop"]({bb});',
     }
     merged = RAW / "osm_ground.json"
+    if merged.exists() and json.loads(merged.read_text()).get("version") != 2:
+        merged.unlink()  # from before multipolygons came with their members
     if not merged.exists():
         els, seen = [], set()
         for i, (what, body) in enumerate(parts.items()):
-            part = RAW / f"osm_ground_{i}.json"
-            overpass(part, f"[out:json][timeout:300];\n( {body} );\nout geom tags;", what)
+            part = RAW / f"osm_ground_v2_{i}.json"
+            # "out geom" with the full body: "out geom tags" would leave out the members of multipolygons.
+            overpass(part, f"[out:json][timeout:300];\n( {body} );\nout geom;", what)
             if not part.exists():
                 log(f"osm: {what} missing; run fetch.py again to retry")
                 return
@@ -357,7 +360,7 @@ out center tags;"""),
                 if (el["type"], el["id"]) not in seen:
                     seen.add((el["type"], el["id"]))
                     els.append(el)
-        merged.write_text(json.dumps({"elements": els}))
+        merged.write_text(json.dumps({"version": 2, "elements": els}))
         log(f"osm ground: {len(els)} features")
 
 

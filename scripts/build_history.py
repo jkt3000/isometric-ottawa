@@ -36,7 +36,7 @@ STOPS = [
     },
     {
         "year": "1830s", "fr_year": "années 1830", "title": "The forge at the crossroads", "fr_title": "La forge au carrefour",
-        "find": r"Old(e)? Forge", "h": 3,
+        "osm": "w233903852", "h": 3,
         "text": "George Winthrop built a log blacksmith shop where the Richmond and March roads met, some 8 km from "
                 "Bytown. It still stands on its own spot, one of the very few log buildings from the first "
                 "settlement that do.",
@@ -47,7 +47,7 @@ STOPS = [
     },
     {
         "year": "1887", "title": "The cottagers' boat club", "fr_title": "Le club nautique des estivants",
-        "find": r"Britannia Yacht Club", "h": 6,
+        "find": r"BYC Clubhouse", "h": 6,
         "text": "Britannia had become a summer cottage colony. The cottagers founded the Britannia Aquatic Club, which "
                 "met in an old sawmill on the water and raced war canoes before it took up sailing: today's "
                 "Britannia Yacht Club.",
@@ -58,7 +58,7 @@ STOPS = [
     },
     {
         "year": "1892", "title": "St. Stephen's", "fr_title": "St. Stephen",
-        "find": r"St\.? Stephen", "h": 8,
+        "addr": "181 Britannia Road", "h": 8,
         "text": "One of the two churches of the fashionable resort, and the only one still standing.",
         "fr_text": "L'une des deux églises de la villégiature chic, et la seule encore debout.",
         "source": ("Wikipedia: Britannia", WIKI + "Britannia,_Ottawa"),
@@ -77,7 +77,7 @@ STOPS = [
     },
     {
         "year": "1905", "title": "25,000 on a Sunday", "fr_title": "25 000 personnes un dimanche",
-        "find": r"Britannia (Pier|Point)|Pier", "zoom": 1.2,
+        "osm": "w626243179", "zoom": 1.2,
         "text": "On fine Sundays in July and August the streetcars carried up to 25,000 people out to Britannia. The "
                 "steamer G.B. Greene, the 'Queen of the River', took 250 passengers at a time up the river; her "
                 "anchor lies at the beach.",
@@ -98,7 +98,7 @@ STOPS = [
     },
     {
         "year": "1959", "title": "The last streetcar", "fr_title": "Le dernier tramway",
-        "find": r"Old(e)? Forge", "zoom": 0.6,
+        "osm": "w68587547", "zoom": 0.8,
         "text": "On 1 May 1959 the last car ran out to Britannia, on what had become Ottawa's last streetcar line. "
                 "Buses took over.",
         "fr_text": "Le 1er mai 1959, le dernier tramway roule jusqu'à Britannia, sur ce qui était devenu la dernière "
@@ -197,7 +197,7 @@ def main():
     stops = []
     for i, s in enumerate(STOPS, start=1):
         try:
-            hit = locate({"name": s["title"], **{k: s[k] for k in ("find", "latlon", "near") if k in s}})
+            hit = locate({"name": s["title"], **{k: s[k] for k in ("find", "latlon", "near", "osm", "addr") if k in s}})
         except KeyError as e:
             print(f"  skipped: {e}")
             continue

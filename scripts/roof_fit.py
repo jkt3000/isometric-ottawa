@@ -73,8 +73,12 @@ def _robust_fit(f, h):
     return float(e), float(s)
 
 
-def fit(poly, dsm, dtm, fallback_height=None):
-    """Fit a roof. Returns a dict with the ground level, the roof model and its planes (z = a x + b y + c)."""
+def fit(poly, dsm, dtm, fallback_height=None, house=False):
+    """Fit a roof. Returns a dict with the ground level, the roof model and its planes (z = a x + b y + c).
+
+    house: a small residential building. Ottawa's houses nearly all have pitched roofs, so when the lidar can't tell
+    (trees over the roof, a footprint a metre off) and the roof isn't crisply flat either, it gets a modest hip roof
+    at the measured height rather than a flat top."""
     pts, top = _samples(poly, dsm)
     gpts, ground_vals = _samples(poly.buffer(1.0), dtm, shrink=0.0)
     if len(ground_vals) == 0:
@@ -87,40 +91,52 @@ def fit(poly, dsm, dtm, fallback_height=None):
         # Not in the lidar: built since, or too small to see. A plain box at its tagged or a default height.
         height = fallback_height or 6.0
         out.update(model="flat", eave=height, height=height, lidar=False, planes=[(0.0, 0.0, ground + height)])
+        if house and poly.area < 400:
+            _pitched(out, "hip", ground, c, d, n, hl, hw, max(height - 0.33 * min(hw, hl), 2.4), 0.33)
+            out["lidar"] = False
         return out
     h = np.clip(h, 0, None)
     u, v = (pts - c) @ d, (pts - c) @ n
     flat_top = float(np.quantile(h, 0.6))
     score = {"flat": float(np.median(np.abs(h - np.median(h))))}
     params = {}
-    if hw <= 16 and hw >= 2.0:
-        for model, f in (("gable", hw - np.abs(v)), ("hip", np.minimum(hw - np.abs(v), hl - np.abs(u)))):
-            e, s = _robust_fit(f, h)
-            if not (PITCH_MIN <= s <= PITCH_MAX) or e < 1.8 or s * hw < 0.9:
+    if 2.0 <= hw <= 16:
+        models = (("gable", hw - np.abs(v), hw), ("gable_x", hl - np.abs(u), hl), ("hip", np.minimum(hw - np.abs(v), hl - np.abs(u)), min(hw, hl)))
+        for model, f, half in models:
+            if model == "gable_x" and hl > 16:
                 continue
-            score[model] = float(np.median(np.abs(h - (e + s * f))))
-            params[model] = (e, s)
-    model = "flat"
-    if "gable" in score and score["gable"] < 0.6 * score["flat"]:
-        model = "gable"
-    if "hip" in score and score["hip"] < 0.6 * score["flat"] and (model == "flat" or score["hip"] < 0.88 * score["gable"]):
-        model = "hip"
-    if model == "flat":
-        height = max(flat_top, 2.2)
-        out.update(model="flat", eave=height, height=height, lidar=True, planes=[(0.0, 0.0, ground + height)])
+            e, sl = _robust_fit(f, h)
+            if not (0.12 <= sl <= PITCH_MAX) or e < 1.8 or sl * half < 0.5:
+                continue
+            score[model] = float(np.median(np.abs(h - (e + sl * f))))
+            params[model] = (e, sl)
+    pitched = [m for m in params if score[m] < 0.8 * score["flat"]]
+    if pitched:
+        model = min(pitched, key=lambda m: score[m] * (0.92 if m == "hip" else 1.0))
+        e, sl = params[model]
+        _pitched(out, model, ground, c, d, n, hl, hw, e, sl)
         return out
-    e, s = params[model]
-    # One slope per side of the box: z = ground + e + s * (distance in from that side).
+    if house and poly.area < 400 and score["flat"] > 0.22:
+        ridge = float(np.quantile(h, 0.85))
+        sl = 0.33
+        _pitched(out, "hip", ground, c, d, n, hl, hw, max(ridge - sl * min(hw, hl), 2.4), sl)
+        out["model"] = "hip (default)"
+        return out
+    height = max(flat_top, 2.2)
+    out.update(model="flat", eave=height, height=height, lidar=True, planes=[(0.0, 0.0, ground + height)])
+    return out
+
+
+def _pitched(out, model, ground, c, d, n, hl, hw, e, s):
+    """Planes of a pitched roof: z = ground + e + s * (distance in from a side of the box)."""
+    sides = {"gable": [(n, hw), (-n, hw)], "gable_x": [(d, hl), (-d, hl)], "hip": [(n, hw), (-n, hw), (d, hl), (-d, hl)]}[model]
     planes = []
-    sides = [(n, hw), (-n, hw)] + ([(d, hl), (-d, hl)] if model == "hip" else [])
     for k, half in sides:
         # distance in from the side at +k*half: half - (p - c).k
         a, b = -s * k[0], -s * k[1]
-        cc = ground + e + s * (half + float(c @ k))
-        planes.append((float(a), float(b), float(cc)))
-    ridge = e + s * (hw if model == "gable" else min(hw, hl))
+        planes.append((float(a), float(b), float(ground + e + s * (half + float(c @ k)))))
+    ridge = e + s * {"gable": hw, "gable_x": hl, "hip": min(hw, hl)}[model]
     out.update(model=model, eave=e, pitch=s, height=ridge, lidar=True, planes=planes)
-    return out
 
 
 def _z(plane, x, y):

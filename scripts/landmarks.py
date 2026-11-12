@@ -18,7 +18,7 @@ import json
 
 from config import BUILD
 from geo import wgs_to_utm
-from osm_places import building_at, find
+from osm_places import address, building_at, element, find
 
 HSO = "https://www.historicalsocietyottawa.ca/publications/ottawa-stories/significant-technological-changes-in-the-city/britannia-on-the-bay-75"
 
@@ -40,7 +40,7 @@ PLACES = [
     },
     {
         "name": "Britannia Pier", "fr_name": "Jetée Britannia",
-        "find": r"Britannia (Pier|Point)|Pier", "kind": "Pier · 1900", "fr_kind": "Jetée · 1900",
+        "osm": "w626243179", "kind": "Pier · 1900", "fr_kind": "Jetée · 1900",
         "text": "Built in fifteen weeks in the spring of 1900 on the boulders of a canal that the Metropolitan "
                 "Electric Company had dug for a power plant that never ran. Ten arc lights lit it at night; during "
                 "the First World War men signed up for the 207th Battalion here.",
@@ -50,8 +50,17 @@ PLACES = [
         "more": "https://en.wikipedia.org/wiki/Britannia_Village,_Ottawa",
     },
     {
+        "name": "Trolley Station", "fr_name": "Abri du tramway",
+        "osm": "w68587547", "kind": "Streetcar stop", "fr_kind": "Arrêt de tramway",
+        "text": "The shelter of the Britannia Park streetcar stop. From 1900 until the last car on 1 May 1959, this "
+                "is where the crowds from downtown got off for the beach.",
+        "fr_text": "L'abri de l'arrêt de tramway du parc Britannia. De 1900 jusqu'au dernier tramway, le 1er mai 1959, "
+                   "c'est ici que descendaient les foules venues du centre-ville pour la plage.",
+        "more": "https://www.octranspo.com/en/virtual-museum/colourizing-the-past",
+    },
+    {
         "name": "Britannia Yacht Club", "fr_name": "Club nautique Britannia",
-        "find": r"Britannia Yacht Club", "kind": "Club · 1887", "fr_kind": "Club · 1887",
+        "find": r"BYC Clubhouse", "kind": "Club · 1887", "fr_kind": "Club · 1887", "address": "2777 Cassels Street",
         "text": "Founded in 1887 by Britannia's summer cottagers as the Britannia Aquatic Club, meeting in an old "
                 "sawmill on the water. It is one of the oldest yacht clubs in Canada, at the head of the Deschênes "
                 "Rapids.",
@@ -72,7 +81,7 @@ PLACES = [
     },
     {
         "name": "Britannia Water Purification Plant", "fr_name": "Usine de purification de l'eau Britannia",
-        "find": r"Britannia.*(Water|Purification|Filtration)", "kind": "Waterworks · 1961", "fr_kind": "Usine · 1961",
+        "find": r"^Britannia Water Purification Plant$", "osm_kind": "building", "kind": "Waterworks · 1961", "fr_kind": "Usine · 1961",
         "text": "Built from 1958 to 1961, one of the two plants that make Ottawa's drinking water from the river. Its "
                 "point is where birders come to watch the gulls over the Deschênes Rapids.",
         "fr_text": "Construite de 1958 à 1961, c'est l'une des deux usines qui produisent l'eau potable d'Ottawa à "
@@ -81,7 +90,8 @@ PLACES = [
     },
     {
         "name": "Old St. Stephen's Church", "fr_name": "Ancienne église St. Stephen",
-        "find": r"St\.? Stephen", "kind": "Church · 1892", "fr_kind": "Église · 1892", "style": "church",
+        "addr": "181 Britannia Road", "kind": "Church · 1892", "fr_kind": "Église · 1892", "style": "church",
+        "address": "181 Britannia Road",
         "text": "One of the two churches built for the fashionable summer resort of Britannia, and the only one "
                 "left. The city put a heritage plaque on it in 2010.",
         "fr_text": "L'une des deux églises construites pour la villégiature chic de Britannia, et la seule qui reste. "
@@ -89,7 +99,7 @@ PLACES = [
     },
     {
         "name": "The Olde Forge", "fr_name": "La Vieille Forge",
-        "find": r"Old(e)? Forge", "kind": "Log building · 1830s", "fr_kind": "Bâtiment en rondins · années 1830",
+        "osm": "w233903852", "kind": "Log building · 1830s", "fr_kind": "Bâtiment en rondins · années 1830",
         "address": "2730 Carling Avenue",
         "text": "George Winthrop built this log blacksmith shop in the early 1830s where the Richmond and March roads "
                 "met. It became a tearoom in 1931, a gas station in 1941 and a tourist office in 1958, and since the "
@@ -152,7 +162,7 @@ PLACES = [
     },
     {
         "name": "Bridgehead Iris & Greenbank", "fr_name": "Bridgehead Iris et Greenbank",
-        "find": r"Bridgehead", "near": (45.3510, -75.7905), "kind": "Coffeehouse · 2015", "fr_kind": "Café · 2015",
+        "find": r"Bridgehead", "near": (45.3482, -75.7880), "kind": "Coffeehouse · 2015", "fr_kind": "Café · 2015",
         "address": "2745 Iris Street",
         "text": "Opened on 4 August 2015 as Bridgehead's sixteenth coffeehouse, in a new office building at Iris and "
                 "Greenbank. Bridgehead started in 1981, when two United Church ministers and two activists began "
@@ -165,7 +175,7 @@ PLACES = [
     },
     {
         "name": "Bridgehead Fairlawn", "fr_name": "Bridgehead Fairlawn",
-        "find": r"Bridgehead", "near": (45.3735, -75.7650), "kind": "Coffeehouse", "fr_kind": "Café",
+        "find": r"Bridgehead", "near": (45.3708, -75.7686), "kind": "Coffeehouse", "fr_kind": "Café",
         "address": "2140 Carling Avenue",
         "text": "The Bridgehead in Fairlawn Plaza, on Carling Avenue at Woodroffe.",
         "fr_text": "Le Bridgehead de la place Fairlawn, sur l'avenue Carling à l'angle de Woodroffe.",
@@ -175,7 +185,7 @@ PLACES = [
 
 CATEGORIES = [
     ("britannia", "Britannia by the Bay", "Britannia au bord de la baie",
-     ["Britannia Beach", "Britannia Pier", "Britannia Yacht Club", "Mud Lake", "Britannia Water Purification Plant",
+     ["Britannia Beach", "Britannia Pier", "Trolley Station", "Britannia Yacht Club", "Mud Lake", "Britannia Water Purification Plant",
       "Old St. Stephen's Church"]),
     ("neighbourhood", "The neighbourhood", "Le quartier",
      ["Queensway Terrace North", "Frank Ryan Park", "Elmhurst Woods", "Britannia United Church", "The Olde Forge"]),
@@ -211,6 +221,10 @@ def locate(p):
         _, c, el = best
         bid = f"{el['type'][0]}{el['id']}" if "building" in el.get("tags", {}) else building_at(c.x, c.y, near=3)
         return {"x": c.x, "y": c.y, "building": bid, "name": el["tags"]["name"]}
+    if "osm" in p:
+        return element(p["osm"])
+    if "addr" in p:
+        return address(p["addr"])
     return find(p["find"], p.get("osm_kind"))
 
 

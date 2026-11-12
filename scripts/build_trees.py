@@ -72,9 +72,16 @@ def main():
     radius = np.clip(np.sqrt(areas / np.pi), 1.0, 7.5)
 
     # Crown color from the aerial photo: DRAPE is flown in spring with the leaves off, so evergreens are the green ones.
-    aerial = load_aerial().astype(np.float32)
+    aerial = load_aerial()
     scale = int(RES / GROUND_RES)
-    small = aerial.reshape(aerial.shape[0] // scale, scale, aerial.shape[1] // scale, scale, 3).mean(axis=(1, 3))
+    # Block means at the canopy model's resolution, summed view by view: the whole photo as floats would not fit.
+    hh, ww = aerial.shape[0] // scale, aerial.shape[1] // scale
+    small = np.zeros((hh, ww, 3), np.float32)
+    for dy in range(scale):
+        for dx in range(scale):
+            small += aerial[dy : hh * scale : scale, dx : ww * scale : scale]
+    small /= scale * scale
+    del aerial
     cols = np.stack([ndi.median(small[..., c], labels, index=np.arange(1, len(ys) + 1)) for c in range(3)], -1)
     cols = np.nan_to_num(cols, nan=90.0)
     r, g, b = cols[:, 0], cols[:, 1], cols[:, 2]

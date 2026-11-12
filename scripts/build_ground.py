@@ -267,8 +267,12 @@ def paint(ids, aerial, r0, cats, roads, base, stripes_dir, shadows):
 
     # Yards: lawn where the photo is green, light paving elsewhere.
     yard = cat == CAT["yard"]
-    sm = ndi.gaussian_filter(aerial.astype(np.float32), (6, 6, 0))
-    greenish = ndi.median_filter((sm[..., 1] > sm[..., 0] + 2) & (sm[..., 1] >= sm[..., 2]), size=7)
+    # DRAPE's lawns in May are olive, barely greener than red; what sets them apart from paving is less blue than
+    # green and being darker.
+    sm = ndi.gaussian_filter(aerial.astype(np.float32), (3, 3, 0))
+    lum = sm.mean(-1)
+    greenish = ndi.median_filter((sm[..., 1] - sm[..., 2] > 9) & (sm[..., 1] >= sm[..., 0] - 6) & (lum < 135), size=7)
+    del lum
     lawn = np.array((112, 156, 68), np.float32)
     paving = np.array((176, 170, 156), np.float32)
     img[yard & greenish] = lawn * (0.96 + 0.08 * n1[yard & greenish])[:, None]
@@ -458,6 +462,20 @@ def paint_osm(img, cat, r0=0):
         elif sport == "equestrian":
             sub[area] = np.array((214, 196, 154), np.float32)
             d.polygon([tuple(p) for p in pts], outline=1, width=2)
+        elif t.get("leisure") == "pitch" and sport in ("baseball", "softball"):
+            # Ball diamond: mown grass with a skinned infield of red clay at the end nearest the pitch's middle line.
+            gy, gx = np.mgrid[0:h, 0:w]
+            along = (gx - c[0]) * ua[0] + (gy - c[1]) * ua[1]
+            across = (gx - c[0]) * va[0] + (gy - c[1]) * va[1]
+            sub[area] = np.array((100, 158, 66), np.float32)
+            sub[(np.mod(along, 40) < 20) & area] = np.array((112, 170, 74), np.float32)
+            home = -0.75 * hu
+            infield = (np.abs(along - home) + np.abs(across) < 0.45 * min(hu, hv) * 1.4) & area
+            sub[infield] = np.array((186, 128, 92), np.float32)
+        elif t.get("leisure") == "pitch" and sport in ("basketball", "volleyball", "multi"):
+            sub[area] = np.array((112, 116, 124), np.float32)
+            d.polygon([tuple(p) for p in pts], outline=1, width=2)
+            d.line([P(0, -0.9), P(0, 0.9)], fill=1, width=2)
         elif t.get("leisure") == "pitch":
             # Football: mowing stripes and the full set of lines, scaled to the pitch.
             gy, gx = np.mgrid[0:h, 0:w]

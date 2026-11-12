@@ -19,7 +19,7 @@ Output: data/build/surfaces.json
 import json
 
 from shapely.geometry import LineString, Point, Polygon, box
-from shapely.ops import linemerge, polygonize, unary_union
+from shapely.ops import polygonize, unary_union
 
 from config import BUILD, RAW, XMAX, XMIN, YMAX, YMIN
 from geo import wgs_to_utm
@@ -166,11 +166,11 @@ def relation_polygon(rel):
         (inner if m.get("role") == "inner" else outer).append(line)
     if not outer:
         return None
-    polys = list(polygonize(linemerge(unary_union(outer))))
+    polys = list(polygonize(unary_union(outer)))
     if not polys:
         return None
     shape = unary_union(polys)
-    holes = list(polygonize(linemerge(unary_union(inner)))) if inner else []
+    holes = list(polygonize(unary_union(inner))) if inner else []
     if holes:
         shape = shape.difference(unary_union(holes))
     return shape

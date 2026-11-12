@@ -88,3 +88,40 @@ def find(pattern, kind=None):
     t = el.get("tags", {})
     bid = f"{el['type'][0]}{el['id']}" if "building" in t else building_at(c.x, c.y)
     return {"x": c.x, "y": c.y, "building": bid, "tags": t, "name": name}
+
+
+def element(osm_id):
+    """A feature by its OpenStreetMap id, such as "w626243179" (way) or "n4733084883" (node)."""
+    kind = {"w": "way", "n": "node", "r": "relation"}[osm_id[0]]
+    for f in ("osm_ground.json", "osm_landmarks.json", "osm_addresses.json"):
+        path = RAW / f
+        if not path.exists():
+            continue
+        for el in json.loads(path.read_text())["elements"]:
+            if el["type"] == kind and str(el["id"]) == osm_id[1:] and (el.get("geometry") or el.get("lat") or el.get("members")):
+                shape = _shape(el)
+                c = shape.representative_point() if shape.area else shape.centroid
+                t = el.get("tags", {})
+                bid = osm_id if "building" in t else building_at(c.x, c.y, near=2)
+                return {"x": c.x, "y": c.y, "building": bid, "tags": t, "name": t.get("name", osm_id)}
+    raise KeyError(f"no OpenStreetMap feature {osm_id}")
+
+
+def address(text):
+    """The building at an address such as "181 Britannia Road" (data/raw/osm_addresses.json)."""
+    num, street = text.split(" ", 1)
+    best = None
+    for el in json.loads((RAW / "osm_addresses.json").read_text())["elements"]:
+        t = el.get("tags", {})
+        if t.get("addr:housenumber") != num or t.get("addr:street", "").lower() != street.lower():
+            continue
+        p = el if "lat" in el else el.get("center")
+        x, y = wgs_to_utm(p["lat"], p["lon"])
+        bid = f"{el['type'][0]}{el['id']}" if "building" in t else building_at(x, y, near=5)
+        # Prefer the address that is a building itself over a park or a lot with the same number.
+        rank = 0 if "building" in t else 1 if bid else 2
+        if best is None or rank < best[0]:
+            best = (rank, {"x": x, "y": y, "building": bid, "tags": t, "name": t.get("name", text)})
+    if best is None:
+        raise KeyError(f"no OpenStreetMap address {text!r}")
+    return best[1]
